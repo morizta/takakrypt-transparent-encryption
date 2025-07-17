@@ -23,11 +23,11 @@
                 }
             },
             {
-                "id": "rule-sensitive-testuser1",
+                "id": "rule-sensitive-editors-only",
                 "order": 2,
                 "resource_set": ["sensitive-data"],
                 "user_set": ["testuser1-set"],
-                "process_set": [],
+                "process_set": ["text-editors"],
                 "action": ["read"],
                 "browsing": true,
                 "effect": {
@@ -39,8 +39,24 @@
                 }
             },
             {
-                "id": "rule-sensitive-deny-all",
+                "id": "rule-sensitive-testuser1-any-process",
                 "order": 3,
+                "resource_set": ["sensitive-data"],
+                "user_set": ["testuser1-set"],
+                "process_set": [],
+                "action": ["read"],
+                "browsing": true,
+                "effect": {
+                    "permission": "deny",
+                    "option": {
+                        "apply_key": false,
+                        "audit": true
+                    }
+                }
+            },
+            {
+                "id": "rule-sensitive-deny-all",
+                "order": 4,
                 "resource_set": [],
                 "user_set": [],
                 "process_set": [],
