@@ -61,16 +61,21 @@ func (p *FileKeyProvider) loadKeys(keysFile string) error {
 }
 
 func (p *FileKeyProvider) GetKey(keyID string) ([]byte, error) {
+	log.Printf("[CRYPTO] Looking up key: %s", keyID)
 	metadata, exists := p.keys[keyID]
 	if !exists {
+		log.Printf("[CRYPTO] ERROR: Key not found: %s", keyID)
 		return nil, fmt.Errorf("key not found: %s", keyID)
 	}
 
+	log.Printf("[CRYPTO] Found key: %s, type: %s, status: %s", keyID, metadata.Type, metadata.Status)
 	if metadata.Status != "active" {
+		log.Printf("[CRYPTO] ERROR: Key is not active: %s", keyID)
 		return nil, fmt.Errorf("key is not active: %s", keyID)
 	}
 
 	if metadata.Type == "NONE" {
+		log.Printf("[CRYPTO] ERROR: Key type is NONE for keyID: %s", keyID)
 		return nil, fmt.Errorf("no encryption for this key")
 	}
 
