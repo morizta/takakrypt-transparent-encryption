@@ -68,12 +68,12 @@ func (i *Interceptor) InterceptOpen(ctx context.Context, op *FileOperation) (*Op
 		Binary:    op.Binary,
 	}
 
-	result, err := i.policyEngine.EvaluateAccess(req)
-	if err != nil {
+	result, evalErr := i.policyEngine.EvaluateAccess(req)
+	if evalErr != nil {
 		return &OperationResult{
 			Allowed: false,
-			Error:   fmt.Errorf("policy evaluation failed: %w", err),
-		}, err
+			Error:   fmt.Errorf("policy evaluation failed: %w", evalErr),
+		}, evalErr
 	}
 
 	auditEvent := &AuditEvent{
