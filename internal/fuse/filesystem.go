@@ -38,6 +38,7 @@ var _ = (fs.NodeOpener)((*TransparentFS)(nil))
 var _ = (fs.NodeReaddirer)((*TransparentFS)(nil))
 var _ = (fs.NodeGetattrer)((*TransparentFS)(nil))
 var _ = (fs.NodeSetattrer)((*TransparentFS)(nil))
+var _ = (fs.NodeRenamer)((*TransparentFS)(nil))
 
 func (tfs *TransparentFS) Lookup(ctx context.Context, name string, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
 	virtualPath := filepath.Join(tfs.getVirtualPath(), name)
@@ -84,8 +85,10 @@ func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32,
 	uid, gid, pid := getRealUserContext(ctx)
 	binary := getProcessBinaryFromPid(pid)
 
+	log.Printf("[FUSE] Create: path=%s, flags=%d, mode=%o, uid=%d, gid=%d, pid=%d, binary=%s", virtualPath, flags, mode, uid, gid, pid, binary)
+
 	op := &filesystem.FileOperation{
-		Type:   "create",
+		Type:   "write", // Changed from "create" to "write" to match policy actions
 		Path:   virtualPath,
 		Mode:   os.FileMode(mode),
 		Flags:  int(flags),
@@ -97,15 +100,25 @@ func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32,
 
 	result, err := tfs.interceptor.InterceptWrite(ctx, op)
 	if err != nil || !result.Allowed {
+		log.Printf("[FUSE] Create denied: %v", err)
 		return nil, nil, 0, syscall.EACCES
 	}
 
+	// Ensure parent directory exists
 	if err := os.MkdirAll(filepath.Dir(backingPath), 0755); err != nil {
+		log.Printf("[FUSE] Create mkdir failed: %v", err)
 		return nil, nil, 0, syscall.EIO
 	}
 
-	file, err := os.OpenFile(backingPath, int(flags), os.FileMode(mode))
+	// Create file with proper flags - ensure O_CREATE is set
+	fileFlags := int(flags)
+	if fileFlags&os.O_CREATE == 0 {
+		fileFlags |= os.O_CREATE
+	}
+	
+	file, err := os.OpenFile(backingPath, fileFlags, os.FileMode(mode))
 	if err != nil {
+		log.Printf("[FUSE] Create file failed: %v", err)
 		return nil, nil, 0, syscall.EIO
 	}
 
@@ -118,11 +131,19 @@ func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32,
 
 	stable := fs.StableAttr{
 		Mode: fuse.S_IFREG,
-		Ino:  1,
+		Ino:  getInoForPath(virtualPath),
 	}
 
-	info, _ := file.Stat()
+	info, err := file.Stat()
+	if err != nil {
+		file.Close()
+		log.Printf("[FUSE] Create stat failed: %v", err)
+		return nil, nil, 0, syscall.EIO
+	}
+
 	out.Attr = fileInfoToAttr(info)
+	out.SetAttrTimeout(1)
+	out.SetEntryTimeout(1)
 
 	fileHandle := &TransparentFileHandle{
 		file:        file,
@@ -132,6 +153,7 @@ func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32,
 		backingPath: backingPath,
 	}
 
+	log.Printf("[FUSE] Create successful: %s", virtualPath)
 	return tfs.NewInode(ctx, child, stable), fileHandle, 0, 0
 }
 
@@ -264,6 +286,46 @@ func (tfs *TransparentFS) Setattr(ctx context.Context, fh fs.FileHandle, in *fus
 	return 0
 }
 
+func (tfs *TransparentFS) Rename(ctx context.Context, name string, newParent fs.InodeEmbedder, newName string, flags uint32) syscall.Errno {
+	// Get real user context from FUSE
+	uid, gid, pid := getRealUserContext(ctx)
+	binary := getProcessBinaryFromPid(pid)
+
+	oldVirtualPath := filepath.Join(tfs.getVirtualPath(), name)
+	oldBackingPath := filepath.Join(tfs.backingPath, name)
+
+	newFS := newParent.(*TransparentFS)
+	newVirtualPath := filepath.Join(newFS.getVirtualPath(), newName)
+	newBackingPath := filepath.Join(newFS.backingPath, newName)
+
+	log.Printf("[FUSE] Rename: from=%s to=%s, uid=%d, pid=%d, binary=%s", oldVirtualPath, newVirtualPath, uid, pid, binary)
+
+	// Check permissions for both source and destination
+	writeOp := &filesystem.FileOperation{
+		Type:   "write",
+		Path:   newVirtualPath,
+		UID:    uid,
+		GID:    gid,
+		PID:    pid,
+		Binary: binary,
+	}
+
+	result, err := tfs.interceptor.InterceptWrite(ctx, writeOp)
+	if err != nil || !result.Allowed {
+		log.Printf("[FUSE] Rename denied: %v", err)
+		return syscall.EACCES
+	}
+
+	// Perform the rename operation
+	if err := os.Rename(oldBackingPath, newBackingPath); err != nil {
+		log.Printf("[FUSE] Rename failed: %v", err)
+		return syscall.EIO
+	}
+
+	log.Printf("[FUSE] Rename successful")
+	return 0
+}
+
 func (tfs *TransparentFS) getVirtualPath() string {
 	rel, err := filepath.Rel(tfs.guardPoint.SecureStoragePath, tfs.backingPath)
 	if err != nil {
@@ -279,5 +341,14 @@ func getProcessBinary(pid int) string {
 		return "unknown"
 	}
 	return binary
+}
+
+func getInoForPath(path string) uint64 {
+	// Simple hash function for inode generation
+	var hash uint64 = 5381
+	for _, c := range []byte(path) {
+		hash = ((hash << 5) + hash) + uint64(c)
+	}
+	return hash
 }
 

@@ -37,6 +37,7 @@ var _ = (fs.FileReader)((*TransparentFileHandle)(nil))
 var _ = (fs.FileWriter)((*TransparentFileHandle)(nil))
 var _ = (fs.FileFlusher)((*TransparentFileHandle)(nil))
 var _ = (fs.FileReleaser)((*TransparentFileHandle)(nil))
+var _ = (fs.FileFsyncer)((*TransparentFileHandle)(nil))
 
 func (tf *TransparentFile) Open(ctx context.Context, flags uint32) (fs.FileHandle, uint32, syscall.Errno) {
 	// Get real user context from FUSE
@@ -90,20 +91,52 @@ func (tf *TransparentFile) Getattr(ctx context.Context, fh fs.FileHandle, out *f
 }
 
 func (tf *TransparentFile) Setattr(ctx context.Context, fh fs.FileHandle, in *fuse.SetAttrIn, out *fuse.AttrOut) syscall.Errno {
+	// Get real user context from FUSE
+	uid, gid, pid := getRealUserContext(ctx)
+	binary := getProcessBinaryFromPid(pid)
+
+	log.Printf("[FUSE] Setattr: path=%s, uid=%d, pid=%d, binary=%s", tf.virtualPath, uid, pid, binary)
+
 	if in.Valid&fuse.FATTR_MODE != 0 {
+		log.Printf("[FUSE] Setting mode: %o", in.Mode)
 		if err := os.Chmod(tf.backingPath, os.FileMode(in.Mode)); err != nil {
+			log.Printf("[FUSE] Chmod failed: %v", err)
 			return syscall.EIO
 		}
 	}
 
 	if in.Valid&fuse.FATTR_SIZE != 0 {
+		log.Printf("[FUSE] Truncating to size: %d", in.Size)
+		
+		// For encrypted files, we need to handle truncation through the interceptor
+		if tf.guardPoint != nil {
+			// Check if user has write permission for truncation
+			op := &filesystem.FileOperation{
+				Type:   "write",
+				Path:   tf.virtualPath,
+				Data:   make([]byte, in.Size), // Create buffer of target size
+				UID:    uid,
+				GID:    gid,
+				PID:    pid,
+				Binary: binary,
+			}
+
+			result, err := tf.interceptor.InterceptWrite(ctx, op)
+			if err != nil || !result.Allowed {
+				log.Printf("[FUSE] Truncate denied: %v", err)
+				return syscall.EACCES
+			}
+		}
+		
 		if err := os.Truncate(tf.backingPath, int64(in.Size)); err != nil {
+			log.Printf("[FUSE] Truncate failed: %v", err)
 			return syscall.EIO
 		}
 	}
 
 	info, err := os.Stat(tf.backingPath)
 	if err != nil {
+		log.Printf("[FUSE] Stat failed: %v", err)
 		return syscall.EIO
 	}
 
@@ -159,6 +192,8 @@ func (fh *TransparentFileHandle) Write(ctx context.Context, data []byte, off int
 	uid, gid, pid := getRealUserContext(ctx)
 	binary := getProcessBinaryFromPid(pid)
 
+	log.Printf("[FUSE] Write: path=%s, offset=%d, size=%d, uid=%d, pid=%d, binary=%s", fh.virtualPath, off, len(data), uid, pid, binary)
+
 	op := &filesystem.FileOperation{
 		Type:   "write",
 		Path:   fh.virtualPath,
@@ -171,25 +206,41 @@ func (fh *TransparentFileHandle) Write(ctx context.Context, data []byte, off int
 
 	result, err := fh.interceptor.InterceptWrite(ctx, op)
 	if err != nil || !result.Allowed {
+		log.Printf("[FUSE] Write denied: %v", err)
 		return 0, syscall.EACCES
 	}
 
 	if result.Encrypted {
+		// For encrypted files, the interceptor handles the actual write
+		// We just need to return success to the application
+		log.Printf("[FUSE] Write successful (encrypted): %d bytes", len(data))
 		return uint32(len(data)), 0
 	}
 
+	// For non-encrypted files, write directly to backing file
 	n, err := fh.file.WriteAt(data, off)
 	if err != nil {
+		log.Printf("[FUSE] Write failed: %v", err)
 		return 0, syscall.EIO
 	}
 
+	log.Printf("[FUSE] Write successful: %d bytes", n)
 	return uint32(n), 0
 }
 
 func (fh *TransparentFileHandle) Flush(ctx context.Context) syscall.Errno {
+	// Get real user context from FUSE
+	uid, _, pid := getRealUserContext(ctx)
+	binary := getProcessBinaryFromPid(pid)
+
+	log.Printf("[FUSE] Flush: path=%s, uid=%d, pid=%d, binary=%s", fh.virtualPath, uid, pid, binary)
+
 	if err := fh.file.Sync(); err != nil {
+		log.Printf("[FUSE] Flush failed: %v", err)
 		return syscall.EIO
 	}
+	
+	log.Printf("[FUSE] Flush successful")
 	return 0
 }
 
@@ -197,6 +248,61 @@ func (fh *TransparentFileHandle) Release(ctx context.Context) syscall.Errno {
 	if err := fh.file.Close(); err != nil {
 		return syscall.EIO
 	}
+	return 0
+}
+
+func (fh *TransparentFileHandle) Fsync(ctx context.Context, flags uint32) syscall.Errno {
+	// Get real user context from FUSE
+	uid, _, pid := getRealUserContext(ctx)
+	binary := getProcessBinaryFromPid(pid)
+
+	log.Printf("[FUSE] Fsync: path=%s, uid=%d, pid=%d, binary=%s", fh.virtualPath, uid, pid, binary)
+
+	if err := fh.file.Sync(); err != nil {
+		log.Printf("[FUSE] Fsync failed: %v", err)
+		return syscall.EIO
+	}
+
+	log.Printf("[FUSE] Fsync successful")
+	return 0
+}
+
+func (fh *TransparentFileHandle) Flock(ctx context.Context, owner uint64, lock *fuse.FileLock, flags uint32) syscall.Errno {
+	// Get real user context from FUSE
+	uid, _, pid := getRealUserContext(ctx)
+	binary := getProcessBinaryFromPid(pid)
+
+	log.Printf("[FUSE] Flock: path=%s, uid=%d, pid=%d, binary=%s, type=%d", fh.virtualPath, uid, pid, binary, lock.Typ)
+
+	// For database operations, we need to support file locking
+	// This is crucial for MariaDB/MySQL data consistency
+	
+	// Convert FUSE lock to syscall flock
+	var lockType int
+	switch lock.Typ {
+	case 0: // F_RDLCK - Read lock
+		lockType = syscall.LOCK_SH // Shared lock
+		log.Printf("[FUSE] Setting shared lock")
+	case 1: // F_WRLCK - Write lock  
+		lockType = syscall.LOCK_EX // Exclusive lock
+		log.Printf("[FUSE] Setting exclusive lock")
+	case 2: // F_UNLCK - Unlock
+		lockType = syscall.LOCK_UN // Unlock
+		log.Printf("[FUSE] Unlocking")
+	default:
+		log.Printf("[FUSE] Unknown lock type: %d", lock.Typ)
+		return syscall.EINVAL
+	}
+
+	if flags&fuse.FUSE_LK_FLOCK != 0 {
+		// Use flock() syscall for file locking
+		if err := syscall.Flock(int(fh.file.Fd()), lockType); err != nil {
+			log.Printf("[FUSE] Flock failed: %v", err)
+			return syscall.Errno(err.(syscall.Errno))
+		}
+	}
+
+	log.Printf("[FUSE] Flock successful")
 	return 0
 }
 
