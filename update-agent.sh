@@ -16,7 +16,7 @@ sudo cp takakrypt-agent /opt/takakrypt/
 
 # Copy updated configuration files
 echo "Updating configuration files..."
-sudo cp "$SCRIPT_DIR/deploy/ubuntu-config/*.json" /opt/takakrypt/config/
+sudo cp "$SCRIPT_DIR"/deploy/ubuntu-config/*.json /opt/takakrypt/config/
 
 # Start the agent service
 sudo systemctl start takakrypt
