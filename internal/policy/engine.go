@@ -291,17 +291,18 @@ func (e *Engine) matchesResource(path string, resource *config.Resource) bool {
 	log.Printf("[POLICY] Resource matching: path=%s, guardPoint=%s, relPath=%s, resource.Directory=%s", path, guardPoint.ProtectedPath, relPath, resource.Directory)
 
 	// Check directory match
+	resourceDir := strings.TrimPrefix(resource.Directory, "/")
+	log.Printf("[POLICY] Checking directory match: relPath=%s, resourceDir=%s, subfolder=%v", relPath, resourceDir, resource.Subfolder)
+	
+	// Handle guard point root directory listing
+	if relPath == "." {
+		// For directory listing of guard point root, allow if any resource in this directory
+		log.Printf("[POLICY] Guard point root directory listing - allowing access")
+		return true
+	}
+	
 	if resource.Directory != "" {
-		resourceDir := strings.TrimPrefix(resource.Directory, "/")
-		log.Printf("[POLICY] Checking directory match: relPath=%s, resourceDir=%s, subfolder=%v", relPath, resourceDir, resource.Subfolder)
-		
-		// Handle guard point root directory listing
-		if relPath == "." {
-			// For directory listing of guard point root, allow if any resource in this directory
-			log.Printf("[POLICY] Guard point root directory listing - allowing access")
-			return true
-		}
-		
+		// Resource is in a subdirectory
 		if resource.Subfolder {
 			// Check if path is under this directory
 			if !strings.HasPrefix(relPath, resourceDir) {
@@ -316,6 +317,18 @@ func (e *Engine) matchesResource(path string, resource *config.Resource) bool {
 				return false
 			}
 		}
+	} else {
+		// Resource is in guard point root (resource.Directory == "")
+		log.Printf("[POLICY] Resource is in guard point root")
+		if !resource.Subfolder {
+			// File must be directly in guard point root
+			pathDir := filepath.Dir(relPath)
+			if pathDir != "." {
+				log.Printf("[POLICY] File not in guard point root")
+				return false
+			}
+		}
+		// If subfolder=true, allow files anywhere in guard point
 	}
 
 	// Check file pattern match
