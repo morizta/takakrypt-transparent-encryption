@@ -105,23 +105,43 @@ func (i *Interceptor) InterceptOpen(ctx context.Context, op *FileOperation) (*Op
 	}
 
 	encryptedPath := i.getEncryptedPath(guardPoint, op.Path)
-	data, err := i.readAndDecrypt(encryptedPath)
-	if err != nil {
-		// Try to read as plain text if decryption fails
-		plainData, readErr := os.ReadFile(encryptedPath)
-		if readErr != nil {
+	
+	// Determine if we should decrypt based on authorization and apply_key
+	shouldDecrypt := result.Permission == "permit" && result.ApplyKey
+	
+	var data []byte
+	var err error
+	
+	if shouldDecrypt {
+		// Authorized + apply_key: true → Decrypt and return plaintext
+		log.Printf("[CRYPTO] Decrypting file for authorized user: %s", encryptedPath)
+		data, err = i.readAndDecrypt(encryptedPath)
+		if err != nil {
+			// Try to read as plain text if decryption fails (legacy files)
+			plainData, readErr := os.ReadFile(encryptedPath)
+			if readErr != nil {
+				auditEvent.Success = false
+				return &OperationResult{
+					Allowed:    false,
+					AuditEvent: auditEvent,
+					Error:      fmt.Errorf("failed to decrypt data: %w", err),
+				}, err
+			}
+			log.Printf("[CRYPTO] File %s appears to be plain text, reading without decryption", encryptedPath)
+			data = plainData
+		}
+	} else {
+		// Authorized + apply_key: false OR Unauthorized + apply_key: true → Return raw ciphertext
+		log.Printf("[CRYPTO] Reading raw encrypted data (no decryption): %s", encryptedPath)
+		data, err = os.ReadFile(encryptedPath)
+		if err != nil {
 			auditEvent.Success = false
 			return &OperationResult{
 				Allowed:    false,
 				AuditEvent: auditEvent,
-				Error:      fmt.Errorf("failed to decrypt data: %w", err),
+				Error:      fmt.Errorf("failed to read encrypted file: %w", err),
 			}, err
 		}
-		
-		// File exists but isn't encrypted - read as plain text
-		// TODO: Consider encrypting plain text files in the future
-		log.Printf("[CRYPTO] File %s appears to be plain text, reading without decryption", encryptedPath)
-		data = plainData
 	}
 
 	return &OperationResult{
@@ -170,7 +190,8 @@ func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*O
 	}
 
 	guardPoint := i.findGuardPointForPath(op.Path)
-	if guardPoint == nil || !result.ApplyKey {
+	if guardPoint == nil {
+		// Not a guard point - write as plain text
 		err := i.writeFile(op.Path, op.Data, op.Mode)
 		if err != nil {
 			auditEvent.Success = false
@@ -183,7 +204,9 @@ func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*O
 		}, err
 	}
 
+	// Always encrypt when writing to guard points (regardless of apply_key)
 	encryptedPath := i.getEncryptedPath(guardPoint, op.Path)
+	log.Printf("[CRYPTO] Writing encrypted file to: %s", encryptedPath)
 	err = i.encryptAndWrite(encryptedPath, op.Data, op.Mode)
 	if err != nil {
 		auditEvent.Success = false
