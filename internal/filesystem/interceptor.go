@@ -3,6 +3,7 @@ package filesystem
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -106,12 +107,21 @@ func (i *Interceptor) InterceptOpen(ctx context.Context, op *FileOperation) (*Op
 	encryptedPath := i.getEncryptedPath(guardPoint, op.Path)
 	data, err := i.readAndDecrypt(encryptedPath)
 	if err != nil {
-		auditEvent.Success = false
-		return &OperationResult{
-			Allowed:    false,
-			AuditEvent: auditEvent,
-			Error:      fmt.Errorf("failed to decrypt file: %w", err),
-		}, err
+		// Try to read as plain text if decryption fails
+		plainData, readErr := os.ReadFile(encryptedPath)
+		if readErr != nil {
+			auditEvent.Success = false
+			return &OperationResult{
+				Allowed:    false,
+				AuditEvent: auditEvent,
+				Error:      fmt.Errorf("failed to decrypt data: %w", err),
+			}, err
+		}
+		
+		// File exists but isn't encrypted - read as plain text
+		// TODO: Consider encrypting plain text files in the future
+		log.Printf("[CRYPTO] File %s appears to be plain text, reading without decryption", encryptedPath)
+		data = plainData
 	}
 
 	return &OperationResult{
