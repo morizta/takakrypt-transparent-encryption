@@ -164,12 +164,23 @@ func (e *Engine) pathMatches(filePath, guardPath string) bool {
 }
 
 func (e *Engine) matchesRule(req *AccessRequest, rule *config.SecurityRule) bool {
-	log.Printf("[POLICY] Checking action match: req.Action=%s, rule.Action=%v", req.Action, rule.Action)
-	if !e.matchesAction(req.Action, rule.Action) {
-		log.Printf("[POLICY] Action does not match")
-		return false
+	// Handle browsing (directory listing) separately
+	if req.Action == "browse" {
+		log.Printf("[POLICY] Checking browsing permission: req.Action=%s, rule.Browsing=%v", req.Action, rule.Browsing)
+		if !rule.Browsing {
+			log.Printf("[POLICY] Browsing not allowed")
+			return false
+		}
+		log.Printf("[POLICY] Browsing allowed")
+	} else {
+		// Handle other actions (read, write, etc.)
+		log.Printf("[POLICY] Checking action match: req.Action=%s, rule.Action=%v", req.Action, rule.Action)
+		if !e.matchesAction(req.Action, rule.Action) {
+			log.Printf("[POLICY] Action does not match")
+			return false
+		}
+		log.Printf("[POLICY] Action matches")
 	}
-	log.Printf("[POLICY] Action matches")
 
 	if len(rule.UserSet) > 0 {
 		log.Printf("[POLICY] Checking user set match: req.UID=%d, rule.UserSet=%v", req.UID, rule.UserSet)
