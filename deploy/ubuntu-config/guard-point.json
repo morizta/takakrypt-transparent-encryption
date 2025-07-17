@@ -1,0 +1,41 @@
+[
+    {
+        "id": "guard-point-sensitive",
+        "code": "guard-sensitive",
+        "name": "Sensitive Data Guard Point",
+        "guard_point_type": "directory",
+        "protected_path": "/data/sensitive",
+        "secure_storage_path": "/secure_storage/sensitive",
+        "policy": "policy-sensitive-data",
+        "type": "Auto Directory",
+        "enabled": true,
+        "created_at": 1752439877215837000,
+        "updated_at": 1752439877215837000
+    },
+    {
+        "id": "guard-point-database",
+        "code": "guard-database",
+        "name": "Database Guard Point",
+        "guard_point_type": "directory",
+        "protected_path": "/data/database",
+        "secure_storage_path": "/secure_storage/database",
+        "policy": "policy-database-access",
+        "type": "Auto Directory",
+        "enabled": true,
+        "created_at": 1752439877215837000,
+        "updated_at": 1752439877215837000
+    },
+    {
+        "id": "guard-point-public",
+        "code": "guard-public",
+        "name": "Public Data Guard Point",
+        "guard_point_type": "directory",
+        "protected_path": "/data/public",
+        "secure_storage_path": "/secure_storage/public",
+        "policy": "policy-public-access",
+        "type": "Auto Directory",
+        "enabled": true,
+        "created_at": 1752439877215837000,
+        "updated_at": 1752439877215837000
+    }
+]

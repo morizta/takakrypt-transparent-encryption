@@ -1,0 +1,92 @@
+[
+    {
+        "id": "process-set-mysql",
+        "code": "mysql-processes",
+        "name": "MySQL/MariaDB Processes",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "MariaDB database server processes",
+        "resource_set_list": [
+            {
+                "index": 0,
+                "id": "mysql-server-id",
+                "directory": "/usr/sbin/",
+                "file": "mysqld",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 1,
+                "id": "mysql-client-id",
+                "directory": "/usr/bin/",
+                "file": "mysql",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "process-set-editors",
+        "code": "text-editors",
+        "name": "Text Editors",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Text editing applications",
+        "resource_set_list": [
+            {
+                "index": 0,
+                "id": "nano-editor-id",
+                "directory": "/usr/bin/",
+                "file": "nano",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 1,
+                "id": "vim-editor-id",
+                "directory": "/usr/bin/",
+                "file": "vim",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "process-set-shell",
+        "code": "shell-processes",
+        "name": "Shell Processes",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Shell and command line tools",
+        "resource_set_list": [
+            {
+                "index": 0,
+                "id": "bash-shell-id",
+                "directory": "/bin/",
+                "file": "bash",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 1,
+                "id": "cat-command-id",
+                "directory": "/bin/",
+                "file": "cat",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    }
+]

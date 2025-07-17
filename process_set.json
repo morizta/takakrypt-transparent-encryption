@@ -1,0 +1,42 @@
+[
+    {
+        "id": "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6",
+        "code": "maria-db-set",
+        "name": "MariaDB Database",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "This resource set is used for the guard path demo 2.",
+        "resource_set_list" : [
+            {
+                "index": 0,
+                "id": "b2c3d4e5-f6g7-h8i9-j0k1-l2m3n4o5p6q7",
+                "directory": "/usr/bin/",
+                "file": "mariadb",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+        "code": "nano-set",
+        "name": "Nano Set",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "This resource set is used for the guard path demo.",
+        "resource_set_list" : [
+            {
+                "index": 0,
+                "id": "b2c3d4e5-f6g7-h8i9-j0k1-l2m3n4o5p6q7",
+                "directory": "/usr/bin/",
+                "file": "nano",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    }
+]

@@ -1,0 +1,78 @@
+[
+    {
+        "id": "resource-set-sensitive",
+        "code": "sensitive-data",
+        "name": "Sensitive Data Files",
+        "resource_set_type": "directory",
+        "os": "linux",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Highly sensitive files requiring encryption",
+        "resource_list": [
+            {
+                "index": 0,
+                "id": "sensitive-files-id",
+                "directory": "sensitive",
+                "file": "*",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "resource-set-database",
+        "code": "database-files",
+        "name": "Database Files",
+        "resource_set_type": "file",
+        "os": "linux",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Database backup and data files",
+        "resource_list": [
+            {
+                "index": 0,
+                "id": "db-backups-id",
+                "directory": "database",
+                "file": "*.sql",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 1,
+                "id": "db-data-id",
+                "directory": "database",
+                "file": "*.db",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "resource-set-public",
+        "code": "public-data",
+        "name": "Public Data Files",
+        "resource_set_type": "directory",
+        "os": "linux",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Public files accessible by all users",
+        "resource_list": [
+            {
+                "index": 0,
+                "id": "public-files-id",
+                "directory": "public",
+                "file": "*",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    }
+]

@@ -1,0 +1,28 @@
+[
+    {
+        "id": "c9b1d5e8-3f4a-4c9b-8e2b-5a2f3d6e7f8a",
+        "code": "user-set-1",
+        "name": "User Set 1",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "This user set is used for the guard path demo.",
+        "users": [
+            {
+                "index": 0,
+                "id": "a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6",
+                "uid": 1,
+                "uname": "user_one",
+                "fname": "User One",
+                "gname": "User",
+                "gid": 1,
+                "os": "linux",
+                "type": "system",
+                "email": "user.one@example.com",
+                "os_domain": "example.com",
+                "os_user": "user1",
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    }
+]

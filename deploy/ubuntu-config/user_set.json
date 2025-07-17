@@ -1,0 +1,80 @@
+[
+    {
+        "id": "user-set-testuser1",
+        "code": "testuser1-set",
+        "name": "Test User 1 Set",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Test user 1 with database access permissions",
+        "users": [
+            {
+                "index": 0,
+                "id": "testuser1-id",
+                "uid": 1001,
+                "uname": "testuser1",
+                "fname": "Test User One",
+                "gname": "testuser1",
+                "gid": 1001,
+                "os": "linux",
+                "type": "system",
+                "email": "testuser1@testlab.com",
+                "os_domain": "testlab.com",
+                "os_user": "testuser1",
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "user-set-testuser2",
+        "code": "testuser2-set",
+        "name": "Test User 2 Set", 
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Test user 2 with limited file access",
+        "users": [
+            {
+                "index": 0,
+                "id": "testuser2-id",
+                "uid": 1002,
+                "uname": "testuser2",
+                "fname": "Test User Two",
+                "gname": "testuser2",
+                "gid": 1002,
+                "os": "linux",
+                "type": "system",
+                "email": "testuser2@testlab.com",
+                "os_domain": "testlab.com",
+                "os_user": "testuser2",
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "user-set-dbadmin",
+        "code": "dbadmin-set",
+        "name": "Database Admin Set",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Database administrators with full database access",
+        "users": [
+            {
+                "index": 0,
+                "id": "dbadmin-id",
+                "uid": 1003,
+                "uname": "dbadmin",
+                "fname": "Database Admin",
+                "gname": "dbadmin", 
+                "gid": 1003,
+                "os": "linux",
+                "type": "system",
+                "email": "dbadmin@testlab.com",
+                "os_domain": "testlab.com",
+                "os_user": "dbadmin",
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    }
+]
