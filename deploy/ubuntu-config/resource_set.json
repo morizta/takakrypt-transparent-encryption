@@ -12,7 +12,7 @@
             {
                 "index": 0,
                 "id": "sensitive-files-id",
-                "directory": "sensitive",
+                "directory": "",
                 "file": "*",
                 "subfolder": true,
                 "hsdfs": false,
@@ -34,7 +34,7 @@
             {
                 "index": 0,
                 "id": "db-backups-id",
-                "directory": "database",
+                "directory": "",
                 "file": "*.sql",
                 "subfolder": true,
                 "hsdfs": false,
@@ -44,7 +44,7 @@
             {
                 "index": 1,
                 "id": "db-data-id",
-                "directory": "database",
+                "directory": "",
                 "file": "*.db",
                 "subfolder": true,
                 "hsdfs": false,
@@ -66,7 +66,7 @@
             {
                 "index": 0,
                 "id": "public-files-id",
-                "directory": "public",
+                "directory": "",
                 "file": "*",
                 "subfolder": true,
                 "hsdfs": false,
