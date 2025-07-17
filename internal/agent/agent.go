@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/takakrypt/transparent-encryption/internal/audit"
 	"github.com/takakrypt/transparent-encryption/internal/config"
@@ -15,6 +16,7 @@ import (
 
 type Agent struct {
 	config        *config.Config
+	configDir     string
 	policyEngine  *policy.Engine
 	cryptoSvc     *crypto.Service
 	interceptor   *filesystem.Interceptor
@@ -22,15 +24,21 @@ type Agent struct {
 	auditLogger   *audit.Logger
 }
 
-func New(cfg *config.Config) (*Agent, error) {
+func New(cfg *config.Config, configDir string) (*Agent, error) {
 	policyEngine := policy.NewEngine(cfg)
 
-	key, err := crypto.GenerateKey()
+	// Initialize crypto service with file-based key provider
+	var keyProvider crypto.KeyProvider
+	keyProvider, err := crypto.NewFileKeyProvider(filepath.Join(configDir, "keys.json"))
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate crypto key: %w", err)
+		// Fallback to local key provider for backward compatibility
+		log.Printf("[AGENT] Failed to load keys file, using generated key: %v", err)
+		key, err := crypto.GenerateKey()
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate crypto key: %w", err)
+		}
+		keyProvider = crypto.NewLocalKeyProvider(key)
 	}
-
-	keyProvider := crypto.NewLocalKeyProvider(key)
 	cryptoSvc := crypto.NewService(keyProvider)
 
 	interceptor := filesystem.NewInterceptor(policyEngine, cryptoSvc, cfg)
@@ -44,6 +52,7 @@ func New(cfg *config.Config) (*Agent, error) {
 
 	return &Agent{
 		config:        cfg,
+		configDir:     configDir,
 		policyEngine:  policyEngine,
 		cryptoSvc:     cryptoSvc,
 		interceptor:   interceptor,

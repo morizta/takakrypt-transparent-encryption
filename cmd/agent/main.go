@@ -27,7 +27,7 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	agentService, err := agent.New(cfg)
+	agentService, err := agent.New(cfg, *configDir)
 	if err != nil {
 		log.Fatalf("Failed to create agent: %v", err)
 	}

@@ -28,7 +28,7 @@
                 "resource_set": ["sensitive-data"],
                 "user_set": ["testuser1-set"],
                 "process_set": ["text-editors"],
-                "action": ["read"],
+                "action": ["read", "write"],
                 "browsing": true,
                 "effect": {
                     "permission": "permit",

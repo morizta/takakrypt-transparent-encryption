@@ -1,0 +1,35 @@
+[
+    {
+        "id": "key-sensitive-data-001",
+        "name": "Sensitive Data Encryption Key",
+        "type": "AES256-GCM",
+        "guard_point_id": "gp-sensitive",
+        "key_material": "+1wYVHdNRXTzVHToKXMvpbcEBzaAB5IOyOUrmt1AUz8=",
+        "created_at": 1752773638132998000,
+        "modified_at": 1752773638132998000,
+        "status": "active",
+        "description": "Encryption key for sensitive data guard point"
+    },
+    {
+        "id": "key-database-files-001",
+        "name": "Database Files Encryption Key",
+        "type": "AES256-GCM",
+        "guard_point_id": "gp-database",
+        "key_material": "PbvX8nZ8KxDGz9UL0ulFSF8YMclOOwh9pCr3knsRSGs=",
+        "created_at": 1752773638133000000,
+        "modified_at": 1752773638133000000,
+        "status": "active",
+        "description": "Encryption key for database files guard point"
+    },
+    {
+        "id": "key-public-data-001",
+        "name": "Public Data Key (No Encryption)",
+        "type": "NONE",
+        "guard_point_id": "gp-public",
+        "key_material": "",
+        "created_at": 1752773638133000000,
+        "modified_at": 1752773638133000000,
+        "status": "active",
+        "description": "No encryption for public data"
+    }
+]

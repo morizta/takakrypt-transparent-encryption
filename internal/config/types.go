@@ -87,6 +87,8 @@ type GuardPoint struct {
 	ProtectedPath     string `json:"protected_path"`
 	SecureStoragePath string `json:"secure_storage_path"`
 	Policy            string `json:"policy"`
+	PolicyID          string `json:"policy_id"`
+	KeyID             string `json:"key_id"`
 	Type              string `json:"type"`
 	Enabled           bool   `json:"enabled"`
 	CreatedAt         int64  `json:"created_at"`

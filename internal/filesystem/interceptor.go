@@ -115,8 +115,9 @@ func (i *Interceptor) InterceptOpen(ctx context.Context, op *FileOperation) (*Op
 	if shouldDecrypt {
 		// Authorized + apply_key: true → Decrypt and return plaintext
 		log.Printf("[CRYPTO] Decrypting file for authorized user: %s", encryptedPath)
-		data, err = i.readAndDecrypt(encryptedPath)
+		data, err = i.readAndDecrypt(encryptedPath, guardPoint.ID)
 		if err != nil {
+			log.Printf("[CRYPTO] Decryption failed for %s: %v", encryptedPath, err)
 			// Try to read as plain text if decryption fails (legacy files)
 			plainData, readErr := os.ReadFile(encryptedPath)
 			if readErr != nil {
@@ -125,6 +126,26 @@ func (i *Interceptor) InterceptOpen(ctx context.Context, op *FileOperation) (*Op
 					Allowed:    false,
 					AuditEvent: auditEvent,
 					Error:      fmt.Errorf("failed to decrypt data: %w", err),
+				}, err
+			}
+			// Check if file is actually encrypted by looking at first few bytes
+			isEncrypted := false
+			if len(plainData) > 0 {
+				// Check for non-printable characters indicating encryption
+				for i := 0; i < len(plainData) && i < 32; i++ {
+					if plainData[i] < 0x20 || plainData[i] > 0x7E {
+						isEncrypted = true
+						break
+					}
+				}
+			}
+			if isEncrypted {
+				log.Printf("[CRYPTO] ERROR: File %s is encrypted but decryption failed: %v", encryptedPath, err)
+				auditEvent.Success = false
+				return &OperationResult{
+					Allowed:    false,
+					AuditEvent: auditEvent,
+					Error:      fmt.Errorf("file is encrypted but decryption failed: %w", err),
 				}, err
 			}
 			log.Printf("[CRYPTO] File %s appears to be plain text, reading without decryption", encryptedPath)
@@ -207,7 +228,7 @@ func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*O
 	// Always encrypt when writing to guard points (regardless of apply_key)
 	encryptedPath := i.getEncryptedPath(guardPoint, op.Path)
 	log.Printf("[CRYPTO] Writing encrypted file to: %s", encryptedPath)
-	err = i.encryptAndWrite(encryptedPath, op.Data, op.Mode)
+	err = i.encryptAndWrite(encryptedPath, op.Data, op.Mode, guardPoint.ID)
 	if err != nil {
 		auditEvent.Success = false
 		return &OperationResult{
@@ -312,13 +333,13 @@ func (i *Interceptor) getEncryptedPath(gp *config.GuardPoint, originalPath strin
 	return filepath.Join(gp.SecureStoragePath, rel)
 }
 
-func (i *Interceptor) readAndDecrypt(path string) ([]byte, error) {
+func (i *Interceptor) readAndDecrypt(path string, guardPointID string) ([]byte, error) {
 	encryptedData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read encrypted file: %w", err)
 	}
 
-	plainData, err := i.cryptoSvc.Decrypt(encryptedData)
+	plainData, err := i.cryptoSvc.DecryptForGuardPoint(encryptedData, guardPointID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt data: %w", err)
 	}
@@ -326,8 +347,8 @@ func (i *Interceptor) readAndDecrypt(path string) ([]byte, error) {
 	return plainData, nil
 }
 
-func (i *Interceptor) encryptAndWrite(path string, data []byte, mode os.FileMode) error {
-	encryptedData, err := i.cryptoSvc.Encrypt(data)
+func (i *Interceptor) encryptAndWrite(path string, data []byte, mode os.FileMode, guardPointID string) error {
+	encryptedData, err := i.cryptoSvc.EncryptForGuardPoint(data, guardPointID)
 	if err != nil {
 		return fmt.Errorf("failed to encrypt data: %w", err)
 	}
