@@ -54,14 +54,19 @@ func (tf *TransparentFile) Open(ctx context.Context, flags uint32) (fs.FileHandl
 	}
 
 	result, err := tf.interceptor.InterceptOpen(ctx, op)
+	log.Printf("[FUSE] Open result: allowed=%v, err=%v, backingPath=%s", result.Allowed, err, tf.backingPath)
 	if err != nil || !result.Allowed {
+		log.Printf("[FUSE] Open denied by policy")
 		return nil, 0, syscall.EACCES
 	}
 
+	log.Printf("[FUSE] Opening backing file: %s", tf.backingPath)
 	file, err := os.OpenFile(tf.backingPath, int(flags), 0644)
 	if err != nil {
+		log.Printf("[FUSE] Failed to open backing file: %v", err)
 		return nil, 0, syscall.EIO
 	}
+	log.Printf("[FUSE] Successfully opened backing file")
 
 	fileHandle := &TransparentFileHandle{
 		file:        file,
