@@ -89,11 +89,15 @@ func (p *FileKeyProvider) GetKey(keyID string) ([]byte, error) {
 }
 
 func (p *FileKeyProvider) GetKeyForGuardPoint(guardPointID string) ([]byte, error) {
+	log.Printf("[CRYPTO] Looking for key for guard point: %s", guardPointID)
 	keyID, exists := p.guardPointMap[guardPointID]
 	if !exists {
+		log.Printf("[CRYPTO] ERROR: No key configured for guard point: %s", guardPointID)
+		log.Printf("[CRYPTO] Available guard points: %v", p.guardPointMap)
 		return nil, fmt.Errorf("no key configured for guard point: %s", guardPointID)
 	}
 
+	log.Printf("[CRYPTO] Found key ID: %s for guard point: %s", keyID, guardPointID)
 	return p.GetKey(keyID)
 }
 

@@ -228,8 +228,10 @@ func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*O
 	// Always encrypt when writing to guard points (regardless of apply_key)
 	encryptedPath := i.getEncryptedPath(guardPoint, op.Path)
 	log.Printf("[CRYPTO] Writing encrypted file to: %s", encryptedPath)
+	log.Printf("[CRYPTO] Using guard point ID: %s", guardPoint.ID)
 	err = i.encryptAndWrite(encryptedPath, op.Data, op.Mode, guardPoint.ID)
 	if err != nil {
+		log.Printf("[CRYPTO] ERROR: Failed to encrypt and write file: %v", err)
 		auditEvent.Success = false
 		return &OperationResult{
 			Allowed:    false,
@@ -237,6 +239,7 @@ func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*O
 			Error:      fmt.Errorf("failed to encrypt and write file: %w", err),
 		}, err
 	}
+	log.Printf("[CRYPTO] Successfully encrypted and wrote file: %s", encryptedPath)
 
 	return &OperationResult{
 		Allowed:    true,
