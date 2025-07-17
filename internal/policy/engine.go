@@ -277,27 +277,42 @@ func (e *Engine) matchesResource(path string, resource *config.Resource) bool {
 	// Get guard point for this path
 	guardPoint := e.findGuardPoint(path)
 	if guardPoint == nil {
+		log.Printf("[POLICY] No guard point found for resource matching: %s", path)
 		return false
 	}
 
 	// Get relative path within the guard point
 	relPath, err := filepath.Rel(guardPoint.ProtectedPath, path)
 	if err != nil {
+		log.Printf("[POLICY] Failed to get relative path: %s relative to %s", path, guardPoint.ProtectedPath)
 		return false
 	}
+
+	log.Printf("[POLICY] Resource matching: path=%s, guardPoint=%s, relPath=%s, resource.Directory=%s", path, guardPoint.ProtectedPath, relPath, resource.Directory)
 
 	// Check directory match
 	if resource.Directory != "" {
 		resourceDir := strings.TrimPrefix(resource.Directory, "/")
+		log.Printf("[POLICY] Checking directory match: relPath=%s, resourceDir=%s, subfolder=%v", relPath, resourceDir, resource.Subfolder)
+		
+		// Handle guard point root directory listing
+		if relPath == "." {
+			// For directory listing of guard point root, allow if any resource in this directory
+			log.Printf("[POLICY] Guard point root directory listing - allowing access")
+			return true
+		}
+		
 		if resource.Subfolder {
 			// Check if path is under this directory
 			if !strings.HasPrefix(relPath, resourceDir) {
+				log.Printf("[POLICY] Path not under resource directory")
 				return false
 			}
 		} else {
 			// Check if path is directly in this directory
 			pathDir := filepath.Dir(relPath)
 			if pathDir != resourceDir {
+				log.Printf("[POLICY] Path not in resource directory")
 				return false
 			}
 		}
