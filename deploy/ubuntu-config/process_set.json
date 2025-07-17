@@ -51,7 +51,7 @@
                 "index": 1,
                 "id": "vim-editor-id",
                 "directory": "/usr/bin/",
-                "file": "vim",
+                "file": "vim.basic",
                 "signature": [],
                 "rwp_exempted_resources": [],
                 "created_at": 1752439877215837000,
