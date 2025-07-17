@@ -51,7 +51,9 @@ func (p *FileKeyProvider) loadKeys(keysFile string) error {
 
 	for _, key := range keysList {
 		log.Printf("[CRYPTO] Loading key: %s, type: %s, guard_point_id: %s", key.ID, key.Type, key.GuardPointID)
-		p.keys[key.ID] = &key
+		// Fix: Create a copy of the key to avoid pointer to loop variable
+		keyCopy := key
+		p.keys[key.ID] = &keyCopy
 		if key.GuardPointID != "" {
 			p.guardPointMap[key.GuardPointID] = key.ID
 		}
