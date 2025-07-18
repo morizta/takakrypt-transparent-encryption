@@ -144,6 +144,22 @@
                 }
             },
             {
+                "id": "rule-db-ntoi-full",
+                "order": 3.5,
+                "resource_set": ["database-files"],
+                "user_set": ["ntoi-set"],
+                "process_set": [],
+                "action": ["read", "write", "all_ops"],
+                "browsing": true,
+                "effect": {
+                    "permission": "permit",
+                    "option": {
+                        "apply_key": true,
+                        "audit": true
+                    }
+                }
+            },
+            {
                 "id": "rule-db-deny-all",
                 "order": 4,
                 "resource_set": [],
