@@ -51,11 +51,13 @@ func (mm *MountManager) MountGuardPoints(ctx context.Context, guardPoints []conf
 }
 
 func (mm *MountManager) MountGuardPoint(ctx context.Context, gp *config.GuardPoint) error {
-	if err := os.MkdirAll(gp.ProtectedPath, 0755); err != nil {
+	// Create mount point directory if it doesn't exist (ignore if it already exists)
+	if err := os.MkdirAll(gp.ProtectedPath, 0755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("failed to create mount point: %w", err)
 	}
 
-	if err := os.MkdirAll(gp.SecureStoragePath, 0755); err != nil {
+	// Create backing storage directory if it doesn't exist
+	if err := os.MkdirAll(gp.SecureStoragePath, 0755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("failed to create backing storage: %w", err)
 	}
 
