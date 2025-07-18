@@ -145,7 +145,7 @@
             },
             {
                 "id": "rule-db-ntoi-full",
-                "order": 3.5,
+                "order": 4,
                 "resource_set": ["database-files"],
                 "user_set": ["ntoi-set"],
                 "process_set": ["python-apps", "mysql-processes"],
@@ -161,7 +161,7 @@
             },
             {
                 "id": "rule-db-deny-all",
-                "order": 4,
+                "order": 5,
                 "resource_set": [],
                 "user_set": [],
                 "process_set": [],
