@@ -26,6 +26,46 @@
                 "rwp_exempted_resources": [],
                 "created_at": 1752439877215837000,
                 "modified_at": 1752440673097447000
+            },
+            {
+                "index": 2,
+                "id": "sqlite3-id",
+                "directory": "/usr/bin/",
+                "file": "sqlite3",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "process-set-testing",
+        "code": "testing-tools",
+        "name": "Testing Tools",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Testing and utility tools",
+        "resource_set_list": [
+            {
+                "index": 0,
+                "id": "dd-command-id",
+                "directory": "/usr/bin/",
+                "file": "dd",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 1,
+                "id": "truncate-command-id",
+                "directory": "/usr/bin/",
+                "file": "truncate",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
             }
         ]
     },

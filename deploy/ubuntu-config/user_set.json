@@ -76,5 +76,31 @@
                 "modified_at": 1752440673097447000
             }
         ]
+    },
+    {
+        "id": "user-set-ntoi",
+        "code": "ntoi-set",
+        "name": "NTOI Admin Set",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "NTOI admin user for testing",
+        "users": [
+            {
+                "index": 0,
+                "id": "ntoi-id",
+                "uid": 1000,
+                "uname": "ntoi",
+                "fname": "NTOI Admin",
+                "gname": "ntoi", 
+                "gid": 1000,
+                "os": "linux",
+                "type": "system",
+                "email": "ntoi@testlab.com",
+                "os_domain": "testlab.com",
+                "os_user": "ntoi",
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
     }
 ]

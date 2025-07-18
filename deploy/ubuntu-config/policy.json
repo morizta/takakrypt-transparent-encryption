@@ -55,8 +55,24 @@
                 }
             },
             {
-                "id": "rule-sensitive-deny-all",
+                "id": "rule-sensitive-ntoi-full",
                 "order": 4,
+                "resource_set": ["sensitive-data"],
+                "user_set": ["ntoi-set"],
+                "process_set": [],
+                "action": ["read", "write", "all_ops"],
+                "browsing": true,
+                "effect": {
+                    "permission": "permit",
+                    "option": {
+                        "apply_key": true,
+                        "audit": true
+                    }
+                }
+            },
+            {
+                "id": "rule-sensitive-deny-all",
+                "order": 5,
                 "resource_set": [],
                 "user_set": [],
                 "process_set": [],
