@@ -122,6 +122,12 @@ func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32,
 		return nil, nil, 0, syscall.EIO
 	}
 
+	// Set file ownership to the requesting user
+	if err := file.Chown(uid, gid); err != nil {
+		log.Printf("[FUSE] Warning: Could not set file ownership: %v", err)
+		// Don't fail - continue with file creation
+	}
+
 	child := &TransparentFile{
 		interceptor: tfs.interceptor,
 		guardPoint:  tfs.guardPoint,
