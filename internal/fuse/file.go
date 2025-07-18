@@ -105,7 +105,7 @@ func (tf *TransparentFile) Getattr(ctx context.Context, fh fs.FileHandle, out *f
 	log.Printf("[FUSE] File Getattr: setting FUSE attr - uid=%d, gid=%d for %s", attr.Uid, attr.Gid, tf.virtualPath)
 	
 	// Force attribute cache timeout to 0 to always re-read
-	out.SetAttrTimeout(0)
+	out.AttrValid = 0
 	out.Attr = attr
 	return 0
 }
