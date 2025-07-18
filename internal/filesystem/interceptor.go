@@ -196,6 +196,7 @@ func (i *Interceptor) InterceptOpen(ctx context.Context, op *FileOperation) (*Op
 }
 
 func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*OperationResult, error) {
+	log.Printf("[INTERCEPT] InterceptWrite called: path=%s, uid=%d, gid=%d, pid=%d", op.Path, op.UID, op.GID, op.PID)
 	req := &policy.AccessRequest{
 		Path:      op.Path,
 		Action:    "write",
@@ -235,6 +236,7 @@ func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*O
 	guardPoint := i.findGuardPointForPath(op.Path)
 	if guardPoint == nil {
 		// Not a guard point - write as plain text
+		log.Printf("[INTERCEPT] Writing plain file: %s", op.Path)
 		err := i.writeFile(op.Path, op.Data, op.Mode, op.UID, op.GID)
 		if err != nil {
 			auditEvent.Success = false
@@ -251,6 +253,7 @@ func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*O
 	encryptedPath := i.getEncryptedPath(guardPoint, op.Path)
 	log.Printf("[CRYPTO] Writing encrypted file to: %s", encryptedPath)
 	log.Printf("[CRYPTO] Using guard point ID: %s", guardPoint.ID)
+	log.Printf("[INTERCEPT] Writing encrypted file: %s -> %s", op.Path, encryptedPath)
 	err = i.encryptAndWrite(encryptedPath, op.Data, op.Mode, guardPoint.ID, op.UID, op.GID)
 	if err != nil {
 		log.Printf("[CRYPTO] ERROR: Failed to encrypt and write file: %v", err)
