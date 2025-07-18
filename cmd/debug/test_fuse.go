@@ -104,7 +104,7 @@ func testFileLocking(basePath string) {
 	
 	// Write PID to lock file
 	pid := os.Getpid()
-	if _, err := file.WriteString(fmt.Sprintf("%d\n", pid)); err != nil {
+	if _, err := fmt.Fprintf(file, "%d\n", pid); err != nil {
 		log.Fatalf("Failed to write PID: %v", err)
 	}
 	
