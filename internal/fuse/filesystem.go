@@ -122,10 +122,14 @@ func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32,
 		return nil, nil, 0, syscall.EIO
 	}
 
-	// Set file ownership to the requesting user
+	// Set file ownership to the requesting user on both the file handle and backing store
 	if err := file.Chown(uid, gid); err != nil {
-		log.Printf("[FUSE] Warning: Could not set file ownership: %v", err)
-		// Don't fail - continue with file creation
+		log.Printf("[FUSE] Warning: Could not set file ownership on handle: %v", err)
+	}
+	
+	// Also set ownership on the backing store file directly
+	if err := os.Chown(backingPath, uid, gid); err != nil {
+		log.Printf("[FUSE] Warning: Could not set backing store ownership: %v", err)
 	}
 
 	child := &TransparentFile{

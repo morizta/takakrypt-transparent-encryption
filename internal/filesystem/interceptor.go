@@ -115,6 +115,28 @@ func (i *Interceptor) InterceptOpen(ctx context.Context, op *FileOperation) (*Op
 	if shouldDecrypt {
 		// Authorized + apply_key: true → Decrypt and return plaintext
 		log.Printf("[CRYPTO] Decrypting file for authorized user: %s", encryptedPath)
+		
+		// Check if file exists and get its size first
+		fileInfo, statErr := os.Stat(encryptedPath)
+		if statErr != nil {
+			return &OperationResult{
+				Allowed:    false,
+				AuditEvent: auditEvent,
+				Error:      fmt.Errorf("file not found: %w", statErr),
+			}, statErr
+		}
+		
+		// Handle empty files (newly created)
+		if fileInfo.Size() == 0 {
+			log.Printf("[CRYPTO] File is empty (newly created): %s", encryptedPath)
+			return &OperationResult{
+				Data:       []byte{},
+				Allowed:    true,
+				Encrypted:  true,
+				AuditEvent: auditEvent,
+			}, nil
+		}
+		
 		data, err = i.readAndDecrypt(encryptedPath, guardPoint.ID)
 		if err != nil {
 			log.Printf("[CRYPTO] Decryption failed for %s: %v", encryptedPath, err)
