@@ -89,9 +89,15 @@ func (tf *TransparentFile) Getattr(ctx context.Context, fh fs.FileHandle, out *f
 	attr := fileInfoToAttr(info)
 	// Ensure the FUSE view shows the correct ownership from the backing store
 	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		log.Printf("[FUSE] File Getattr: backing store ownership - uid=%d, gid=%d", stat.Uid, stat.Gid)
 		attr.Uid = stat.Uid
 		attr.Gid = stat.Gid
+	} else {
+		log.Printf("[FUSE] File Getattr: no syscall.Stat_t available, using fallback")
+		attr.Uid = 1000 // ntoi user
+		attr.Gid = 1000 // ntoi group
 	}
+	log.Printf("[FUSE] File Getattr: setting FUSE attr - uid=%d, gid=%d for %s", attr.Uid, attr.Gid, tf.virtualPath)
 	out.Attr = attr
 	return 0
 }

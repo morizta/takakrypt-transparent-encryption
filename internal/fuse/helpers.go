@@ -20,6 +20,7 @@ func fileInfoToAttr(info os.FileInfo) fuse.Attr {
 	}
 
 	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		log.Printf("[FUSE] fileInfoToAttr: got syscall.Stat_t - uid=%d, gid=%d", stat.Uid, stat.Gid)
 		attr.Ino = stat.Ino
 		attr.Nlink = uint32(stat.Nlink)
 		attr.Uid = stat.Uid
@@ -32,11 +33,13 @@ func fileInfoToAttr(info os.FileInfo) fuse.Attr {
 		attr.Ctime = uint64(info.ModTime().Unix())
 		attr.Atime = uint64(info.ModTime().Unix())
 	} else {
+		log.Printf("[FUSE] fileInfoToAttr: no syscall.Stat_t, using fallback uid=1000, gid=1000")
 		// Fallback: if we can't get system stat, use default permissions
 		attr.Uid = 1000  // ntoi user
 		attr.Gid = 1000  // ntoi group
 		attr.Nlink = 1
 	}
+	log.Printf("[FUSE] fileInfoToAttr: final attr - uid=%d, gid=%d", attr.Uid, attr.Gid)
 
 	return attr
 }

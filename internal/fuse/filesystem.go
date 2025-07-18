@@ -73,7 +73,20 @@ func (tfs *TransparentFS) Lookup(ctx context.Context, name string, out *fuse.Ent
 		stable.Mode = fuse.S_IFDIR
 	}
 
-	out.Attr = fileInfoToAttr(info)
+	attr := fileInfoToAttr(info)
+	// Force correct ownership display in FUSE
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		log.Printf("[FUSE] Lookup: backing store ownership - uid=%d, gid=%d", stat.Uid, stat.Gid)
+		attr.Uid = stat.Uid
+		attr.Gid = stat.Gid
+	} else {
+		log.Printf("[FUSE] Lookup: no syscall.Stat_t available, using fallback")
+		// Fallback for when syscall.Stat_t is not available
+		attr.Uid = 1000 // ntoi user
+		attr.Gid = 1000 // ntoi group
+	}
+	log.Printf("[FUSE] Lookup: setting FUSE attr - uid=%d, gid=%d for %s", attr.Uid, attr.Gid, name)
+	out.Attr = attr
 	return tfs.Inode.NewInode(ctx, child, stable), 0
 }
 
