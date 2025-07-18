@@ -86,6 +86,10 @@ func (tfs *TransparentFS) Lookup(ctx context.Context, name string, out *fuse.Ent
 		attr.Gid = 1000 // ntoi group
 	}
 	log.Printf("[FUSE] Lookup: setting FUSE attr - uid=%d, gid=%d for %s", attr.Uid, attr.Gid, name)
+	
+	// Disable attribute caching to ensure fresh reads
+	out.AttrValid = 0
+	out.EntryValid = 0
 	out.Attr = attr
 	return tfs.Inode.NewInode(ctx, child, stable), 0
 }
@@ -169,8 +173,8 @@ func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32,
 	attr.Uid = uint32(uid)
 	attr.Gid = uint32(gid)
 	out.Attr = attr
-	out.SetAttrTimeout(1)
-	out.SetEntryTimeout(1)
+	out.SetAttrTimeout(0)
+	out.SetEntryTimeout(0)
 
 	fileHandle := &TransparentFileHandle{
 		file:        file,
