@@ -31,6 +31,11 @@ func fileInfoToAttr(info os.FileInfo) fuse.Attr {
 		attr.Mtime = uint64(info.ModTime().Unix())
 		attr.Ctime = uint64(info.ModTime().Unix())
 		attr.Atime = uint64(info.ModTime().Unix())
+	} else {
+		// Fallback: if we can't get system stat, use default permissions
+		attr.Uid = 1000  // ntoi user
+		attr.Gid = 1000  // ntoi group
+		attr.Nlink = 1
 	}
 
 	return attr

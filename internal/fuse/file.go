@@ -86,7 +86,13 @@ func (tf *TransparentFile) Getattr(ctx context.Context, fh fs.FileHandle, out *f
 		return syscall.ENOENT
 	}
 
-	out.Attr = fileInfoToAttr(info)
+	attr := fileInfoToAttr(info)
+	// Ensure the FUSE view shows the correct ownership from the backing store
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		attr.Uid = stat.Uid
+		attr.Gid = stat.Gid
+	}
+	out.Attr = attr
 	return 0
 }
 

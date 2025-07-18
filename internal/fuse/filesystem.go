@@ -151,7 +151,11 @@ func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32,
 		return nil, nil, 0, syscall.EIO
 	}
 
-	out.Attr = fileInfoToAttr(info)
+	attr := fileInfoToAttr(info)
+	// Force correct ownership for FUSE presentation
+	attr.Uid = uint32(uid)
+	attr.Gid = uint32(gid)
+	out.Attr = attr
 	out.SetAttrTimeout(1)
 	out.SetEntryTimeout(1)
 
