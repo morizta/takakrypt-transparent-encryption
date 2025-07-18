@@ -235,7 +235,7 @@ func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*O
 	guardPoint := i.findGuardPointForPath(op.Path)
 	if guardPoint == nil {
 		// Not a guard point - write as plain text
-		err := i.writeFile(op.Path, op.Data, op.Mode)
+		err := i.writeFile(op.Path, op.Data, op.Mode, op.UID, op.GID)
 		if err != nil {
 			auditEvent.Success = false
 		}
@@ -251,7 +251,7 @@ func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*O
 	encryptedPath := i.getEncryptedPath(guardPoint, op.Path)
 	log.Printf("[CRYPTO] Writing encrypted file to: %s", encryptedPath)
 	log.Printf("[CRYPTO] Using guard point ID: %s", guardPoint.ID)
-	err = i.encryptAndWrite(encryptedPath, op.Data, op.Mode, guardPoint.ID)
+	err = i.encryptAndWrite(encryptedPath, op.Data, op.Mode, guardPoint.ID, op.UID, op.GID)
 	if err != nil {
 		log.Printf("[CRYPTO] ERROR: Failed to encrypt and write file: %v", err)
 		auditEvent.Success = false
@@ -372,7 +372,7 @@ func (i *Interceptor) readAndDecrypt(path string, guardPointID string) ([]byte, 
 	return plainData, nil
 }
 
-func (i *Interceptor) encryptAndWrite(path string, data []byte, mode os.FileMode, guardPointID string) error {
+func (i *Interceptor) encryptAndWrite(path string, data []byte, mode os.FileMode, guardPointID string, uid, gid int) error {
 	encryptedData, err := i.cryptoSvc.EncryptForGuardPoint(data, guardPointID)
 	if err != nil {
 		return fmt.Errorf("failed to encrypt data: %w", err)
@@ -387,16 +387,34 @@ func (i *Interceptor) encryptAndWrite(path string, data []byte, mode os.FileMode
 		return fmt.Errorf("failed to write encrypted file: %w", err)
 	}
 
+	// Set correct ownership after file creation
+	if err := os.Chown(path, uid, gid); err != nil {
+		log.Printf("[INTERCEPT] Warning: Failed to set encrypted file ownership to %d:%d: %v", uid, gid, err)
+	} else {
+		log.Printf("[INTERCEPT] Set encrypted file ownership to %d:%d for %s", uid, gid, path)
+	}
+
 	return nil
 }
 
-func (i *Interceptor) writeFile(path string, data []byte, mode os.FileMode) error {
+func (i *Interceptor) writeFile(path string, data []byte, mode os.FileMode, uid, gid int) error {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
-	return os.WriteFile(path, data, mode)
+	if err := os.WriteFile(path, data, mode); err != nil {
+		return fmt.Errorf("failed to write file: %w", err)
+	}
+
+	// Set correct ownership after file creation
+	if err := os.Chown(path, uid, gid); err != nil {
+		log.Printf("[INTERCEPT] Warning: Failed to set plain file ownership to %d:%d: %v", uid, gid, err)
+	} else {
+		log.Printf("[INTERCEPT] Set plain file ownership to %d:%d for %s", uid, gid, path)
+	}
+
+	return nil
 }
 
 func getCurrentTimestamp() int64 {
