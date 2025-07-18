@@ -3,12 +3,19 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/takakrypt/transparent-encryption/internal/config"
 	"github.com/takakrypt/transparent-encryption/internal/policy"
 )
 
 func main() {
+	// Check if running FUSE tests
+	if len(os.Args) > 1 && os.Args[1] == "test-fuse" {
+		TestFUSEOperations()
+		return
+	}
+
 	cfg, err := config.Load("./")
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
