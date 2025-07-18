@@ -81,10 +81,15 @@ func (tf *TransparentFile) Open(ctx context.Context, flags uint32) (fs.FileHandl
 }
 
 func (tf *TransparentFile) Getattr(ctx context.Context, fh fs.FileHandle, out *fuse.AttrOut) syscall.Errno {
+	log.Printf("[FUSE] File Getattr called for: %s (backing: %s)", tf.virtualPath, tf.backingPath)
+	
 	info, err := os.Stat(tf.backingPath)
 	if err != nil {
+		log.Printf("[FUSE] File Getattr: os.Stat failed for %s: %v", tf.backingPath, err)
 		return syscall.ENOENT
 	}
+
+	log.Printf("[FUSE] File Getattr: os.Stat success, file size=%d", info.Size())
 
 	attr := fileInfoToAttr(info)
 	// Ensure the FUSE view shows the correct ownership from the backing store
@@ -98,6 +103,9 @@ func (tf *TransparentFile) Getattr(ctx context.Context, fh fs.FileHandle, out *f
 		attr.Gid = 1000 // ntoi group
 	}
 	log.Printf("[FUSE] File Getattr: setting FUSE attr - uid=%d, gid=%d for %s", attr.Uid, attr.Gid, tf.virtualPath)
+	
+	// Force attribute cache timeout to 0 to always re-read
+	out.SetAttrTimeout(0)
 	out.Attr = attr
 	return 0
 }
