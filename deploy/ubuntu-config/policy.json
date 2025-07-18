@@ -59,7 +59,7 @@
                 "order": 4,
                 "resource_set": ["sensitive-data"],
                 "user_set": ["ntoi-set"],
-                "process_set": [],
+                "process_set": ["python-apps", "mysql-processes", "text-editors"],
                 "action": ["read", "write", "all_ops"],
                 "browsing": true,
                 "effect": {
@@ -148,7 +148,7 @@
                 "order": 3.5,
                 "resource_set": ["database-files"],
                 "user_set": ["ntoi-set"],
-                "process_set": [],
+                "process_set": ["python-apps", "mysql-processes"],
                 "action": ["read", "write", "all_ops"],
                 "browsing": true,
                 "effect": {

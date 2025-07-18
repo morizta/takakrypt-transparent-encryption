@@ -128,5 +128,35 @@
                 "modified_at": 1752440673097447000
             }
         ]
+    },
+    {
+        "id": "process-set-python",
+        "code": "python-apps",
+        "name": "Python Applications",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Python applications and interpreters",
+        "resource_set_list": [
+            {
+                "index": 0,
+                "id": "python3-id",
+                "directory": "/usr/bin/",
+                "file": "python3",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 1,
+                "id": "python3.10-id",
+                "directory": "/usr/bin/",
+                "file": "python3.10",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
     }
 ]
