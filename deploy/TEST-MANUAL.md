@@ -220,7 +220,10 @@ sudo -u testuser2 ls /data/sensitive/testuser1/
 
 1. **Guard points not mounted**
    ```bash
-   sudo systemctl restart takakrypt
+   sudo systemctl stop takakrypt
+   sleep 3
+   sudo fusermount3 -u /data/* 2>/dev/null || true
+   sudo systemctl start takakrypt
    mount | grep /data
    ```
 
@@ -236,7 +239,10 @@ sudo -u testuser2 ls /data/sensitive/testuser1/
 
 4. **Policy not taking effect**
    ```bash
-   sudo systemctl restart takakrypt
+   sudo systemctl stop takakrypt
+   sleep 3
+   sudo fusermount3 -u /data/* 2>/dev/null || true
+   sudo systemctl start takakrypt
    sudo journalctl -u takakrypt -f
    ```
 
@@ -284,8 +290,11 @@ sudo file /secure_storage/sensitive/testuser1/*
 # Run cleanup script
 sudo ./test-cleanup.sh
 
-# Restart fresh
-sudo systemctl restart takakrypt
+# Restart fresh using proper FUSE-safe sequence
+sudo systemctl stop takakrypt
+sleep 3
+sudo fusermount3 -u /data/* 2>/dev/null || true
+sudo systemctl start takakrypt
 ```
 
 ## Expected vs Actual Results Template

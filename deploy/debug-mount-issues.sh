@@ -53,7 +53,11 @@ echo
 
 echo "=== Recommended Actions ==="
 echo "1. If service is not running: sudo systemctl start takakrypt"
-echo "2. If mounts are stale: sudo umount /data/* ; sudo systemctl restart takakrypt"
+echo "2. If mounts are stale: Use proper restart sequence:"
+echo "   sudo systemctl stop takakrypt"
+echo "   sleep 3"
+echo "   sudo fusermount3 -u /data/* 2>/dev/null || true"
+echo "   sudo systemctl start takakrypt"
 echo "3. If binary missing: check installation"
 echo "4. If config missing: verify configuration files are in place"
 echo "5. Check logs for specific error messages"

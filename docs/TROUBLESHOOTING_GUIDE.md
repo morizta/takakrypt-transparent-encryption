@@ -131,10 +131,13 @@ ls -ld /data/sensitive /data/database /data/public
 
 **Stale Mount Points**:
 ```bash
-# Clean up stale mounts
+# Clean up stale mounts using FUSE-safe sequence
 sudo umount /data/sensitive /data/database /data/public 2>/dev/null
 sudo pkill -f takakrypt-agent
-sudo systemctl restart takakrypt
+sudo systemctl stop takakrypt
+sleep 3
+sudo fusermount3 -u /data/* 2>/dev/null || true
+sudo systemctl start takakrypt
 ```
 
 **Mount Point Creation**:

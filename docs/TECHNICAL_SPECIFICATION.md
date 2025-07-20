@@ -473,8 +473,11 @@ sudo systemctl start takakrypt
 # Stop service
 sudo systemctl stop takakrypt
 
-# Restart service
-sudo systemctl restart takakrypt
+# Restart service (FUSE-safe sequence)
+sudo systemctl stop takakrypt
+sleep 3
+sudo fusermount3 -u /data/* 2>/dev/null || true
+sudo systemctl start takakrypt
 
 # Check status
 sudo systemctl status takakrypt

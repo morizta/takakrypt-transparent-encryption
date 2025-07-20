@@ -368,8 +368,11 @@ sudo systemctl start takakrypt
 # Stop service
 sudo systemctl stop takakrypt
 
-# Restart service
-sudo systemctl restart takakrypt
+# Restart service (FUSE-safe sequence)
+sudo systemctl stop takakrypt
+sleep 3
+sudo fusermount3 -u /data/* 2>/dev/null || true
+sudo systemctl start takakrypt
 
 # Check status
 sudo systemctl status takakrypt
@@ -618,9 +621,12 @@ sudo modprobe fuse
 sudo ls -la /data/
 sudo ls -la /secure_storage/
 
-# Unmount and remount
+# Unmount and remount (FUSE-safe sequence)
 sudo umount /data/sensitive
-sudo systemctl restart takakrypt
+sudo systemctl stop takakrypt
+sleep 3
+sudo fusermount3 -u /data/* 2>/dev/null || true
+sudo systemctl start takakrypt
 ```
 
 **Permission Denied Errors:**
