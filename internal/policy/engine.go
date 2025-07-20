@@ -107,7 +107,7 @@ func (e *Engine) EvaluateAccess(req *AccessRequest) (*AccessResult, error) {
 	for _, rule := range rules {
 		log.Printf("[POLICY] Evaluating rule %d: %s (userSet: %v, processSet: %v, resourceSet: %v, action: %v)", rule.Order, rule.ID, rule.UserSet, rule.ProcessSet, rule.ResourceSet, rule.Action)
 		if e.matchesRule(req, &rule) {
-			log.Printf("[POLICY] Rule matched! Permission: %s, ApplyKey: %v, Audit: %v", rule.Effect.Permission, rule.Effect.Option.ApplyKey, rule.Effect.Option.Audit)
+			log.Printf("[POLICY] Rule matched! RuleID: %s, Permission: %s, ApplyKey: %v, Audit: %v", rule.ID, rule.Effect.Permission, rule.Effect.Option.ApplyKey, rule.Effect.Option.Audit)
 			log.Printf("[POLICY] ========== POLICY EVALUATION END (RULE MATCH: %s) ==========", rule.ID)
 			return &AccessResult{
 				Permission: rule.Effect.Permission,
@@ -116,7 +116,7 @@ func (e *Engine) EvaluateAccess(req *AccessRequest) (*AccessResult, error) {
 				RuleID:     rule.ID,
 			}, nil
 		}
-		log.Printf("[POLICY] Rule did not match")
+		log.Printf("[POLICY] Rule %s did not match", rule.ID)
 	}
 
 	log.Printf("[POLICY] No rules matched, using default deny")
