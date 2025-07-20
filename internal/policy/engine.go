@@ -191,13 +191,16 @@ func (e *Engine) matchesRule(req *AccessRequest, rule *config.SecurityRule) bool
 		log.Printf("[POLICY] User set matches")
 	}
 
-	if len(rule.ProcessSet) > 0 {
+	// Only check process set for non-browsing operations, or when browsing is not explicitly allowed
+	if len(rule.ProcessSet) > 0 && !(req.Action == "browse" && rule.Browsing) {
 		log.Printf("[POLICY] Checking process set match: req.Binary=%s, rule.ProcessSet=%v", req.Binary, rule.ProcessSet)
 		if !e.matchesProcessSet(req, rule.ProcessSet) {
 			log.Printf("[POLICY] Process set does not match")
 			return false
 		}
 		log.Printf("[POLICY] Process set matches")
+	} else if req.Action == "browse" && rule.Browsing {
+		log.Printf("[POLICY] Skipping process set check for browsing operation (browsing=true)")
 	}
 
 	if len(rule.ResourceSet) > 0 {
