@@ -2,6 +2,7 @@ package fuse
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -360,13 +361,17 @@ func (tfs *TransparentFS) Rename(ctx context.Context, name string, newParent fs.
 func (tfs *TransparentFS) getVirtualPath() string {
 	rel, err := filepath.Rel(tfs.guardPoint.SecureStoragePath, tfs.backingPath)
 	if err != nil {
+		log.Printf("[FUSE] getVirtualPath error: %v, guardPoint=%s, backingPath=%s", err, tfs.guardPoint.SecureStoragePath, tfs.backingPath)
 		return tfs.guardPoint.ProtectedPath
 	}
-	return filepath.Join(tfs.guardPoint.ProtectedPath, rel)
+	virtualPath := filepath.Join(tfs.guardPoint.ProtectedPath, rel)
+	log.Printf("[FUSE] getVirtualPath: guardPoint=%s, backingPath=%s, rel=%s, virtualPath=%s", 
+		tfs.guardPoint.SecureStoragePath, tfs.backingPath, rel, virtualPath)
+	return virtualPath
 }
 
 func getProcessBinary(pid int) string {
-	exePath := filepath.Join("/proc", string(rune(pid)), "exe")
+	exePath := filepath.Join("/proc", fmt.Sprintf("%d", pid), "exe")
 	binary, err := os.Readlink(exePath)
 	if err != nil {
 		return "unknown"
