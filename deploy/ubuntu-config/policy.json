@@ -27,7 +27,7 @@
                 "order": 2,
                 "resource_set": ["sensitive-testuser1-folder"],
                 "user_set": ["testuser1-set"],
-                "process_set": ["text-editors", "python-apps"],
+                "process_set": [],
                 "action": ["read", "write"],
                 "browsing": true,
                 "effect": {
