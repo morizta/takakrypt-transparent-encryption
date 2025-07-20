@@ -158,5 +158,45 @@
                 "modified_at": 1752440673097447000
             }
         ]
+    },
+    {
+        "id": "process-set-appaccess",
+        "code": "appaccess-example-python",
+        "name": "App Access Example Python",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Specific python application for database access example",
+        "resource_set_list": [
+            {
+                "index": 0,
+                "id": "appaccess-python-id",
+                "directory": "/usr/bin/",
+                "file": "python3",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "process-set-all",
+        "code": "all-processes",
+        "name": "All Processes",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Universal process access for public data",
+        "resource_set_list": [
+            {
+                "index": 0,
+                "id": "all-processes-id",
+                "directory": "",
+                "file": "*",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
     }
 ]

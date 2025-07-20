@@ -4,13 +4,13 @@
         "code": "policy-sensitive-data",
         "name": "Sensitive Data Access Policy",
         "policy_type": "life_data_transformation",
-        "description": "Controls access to sensitive files with encryption",
+        "description": "Controls access to sensitive files with subfolder-specific permissions",
         "security_rules": [
             {
-                "id": "rule-sensitive-dbadmin",
+                "id": "rule-sensitive-ntoi-admin",
                 "order": 1,
                 "resource_set": ["sensitive-data"],
-                "user_set": ["dbadmin-set"],
+                "user_set": ["ntoi-set"],
                 "process_set": [],
                 "action": ["read", "write", "all_ops"],
                 "browsing": true,
@@ -23,10 +23,26 @@
                 }
             },
             {
-                "id": "rule-sensitive-editors-only",
+                "id": "rule-sensitive-testuser1-folder",
                 "order": 2,
-                "resource_set": ["sensitive-data"],
+                "resource_set": ["sensitive-testuser1-folder"],
                 "user_set": ["testuser1-set"],
+                "process_set": ["text-editors", "python-apps"],
+                "action": ["read", "write"],
+                "browsing": true,
+                "effect": {
+                    "permission": "permit",
+                    "option": {
+                        "apply_key": true,
+                        "audit": true
+                    }
+                }
+            },
+            {
+                "id": "rule-sensitive-testuser2-folder",
+                "order": 3,
+                "resource_set": ["sensitive-testuser2-folder"],
+                "user_set": ["testuser2-set"],
                 "process_set": ["text-editors"],
                 "action": ["read", "write"],
                 "browsing": true,
@@ -39,12 +55,12 @@
                 }
             },
             {
-                "id": "rule-sensitive-testuser1-any-process",
-                "order": 3,
+                "id": "rule-sensitive-testuser1-deny-other",
+                "order": 4,
                 "resource_set": ["sensitive-data"],
                 "user_set": ["testuser1-set"],
                 "process_set": [],
-                "action": ["read"],
+                "action": ["read", "write", "all_ops"],
                 "browsing": true,
                 "effect": {
                     "permission": "deny",
@@ -55,29 +71,29 @@
                 }
             },
             {
-                "id": "rule-sensitive-ntoi-full",
-                "order": 4,
+                "id": "rule-sensitive-testuser2-deny-other",
+                "order": 5,
                 "resource_set": ["sensitive-data"],
-                "user_set": ["ntoi-set"],
-                "process_set": ["python-apps", "mysql-processes", "text-editors"],
+                "user_set": ["testuser2-set"],
+                "process_set": [],
                 "action": ["read", "write", "all_ops"],
                 "browsing": true,
                 "effect": {
-                    "permission": "permit",
+                    "permission": "deny",
                     "option": {
-                        "apply_key": true,
+                        "apply_key": false,
                         "audit": true
                     }
                 }
             },
             {
                 "id": "rule-sensitive-deny-all",
-                "order": 5,
-                "resource_set": [],
+                "order": 6,
+                "resource_set": ["sensitive-data"],
                 "user_set": [],
                 "process_set": [],
                 "action": ["read", "write", "all_ops"],
-                "browsing": true,
+                "browsing": false,
                 "effect": {
                     "permission": "deny",
                     "option": {
@@ -93,31 +109,15 @@
         "code": "policy-database-access",
         "name": "Database Access Policy",
         "policy_type": "life_data_transformation",
-        "description": "Controls access to database files and backups",
+        "description": "Database access restricted to MySQL/MariaDB processes only",
         "security_rules": [
             {
-                "id": "rule-db-admin-full",
-                "order": 1,
-                "resource_set": ["database-files"],
-                "user_set": ["dbadmin-set"],
-                "process_set": [],
-                "action": ["read", "write", "all_ops"],
-                "browsing": true,
-                "effect": {
-                    "permission": "permit",
-                    "option": {
-                        "apply_key": true,
-                        "audit": true
-                    }
-                }
-            },
-            {
                 "id": "rule-db-mysql-process",
-                "order": 2,
-                "resource_set": ["database-files"],
+                "order": 1,
+                "resource_set": ["database-appaccess-only"],
                 "user_set": [],
                 "process_set": ["mysql-processes"],
-                "action": ["read", "write"],
+                "action": ["read", "write", "all_ops"],
                 "browsing": false,
                 "effect": {
                     "permission": "permit",
@@ -128,45 +128,13 @@
                 }
             },
             {
-                "id": "rule-db-testuser1-read",
-                "order": 3,
-                "resource_set": ["database-files"],
-                "user_set": ["testuser1-set"],
-                "process_set": [],
-                "action": ["read"],
-                "browsing": true,
-                "effect": {
-                    "permission": "permit",
-                    "option": {
-                        "apply_key": true,
-                        "audit": true
-                    }
-                }
-            },
-            {
-                "id": "rule-db-ntoi-full",
-                "order": 4,
-                "resource_set": ["database-files"],
-                "user_set": ["ntoi-set"],
-                "process_set": ["python-apps", "mysql-processes"],
-                "action": ["read", "write", "all_ops"],
-                "browsing": true,
-                "effect": {
-                    "permission": "permit",
-                    "option": {
-                        "apply_key": true,
-                        "audit": true
-                    }
-                }
-            },
-            {
                 "id": "rule-db-deny-all",
-                "order": 5,
-                "resource_set": [],
+                "order": 2,
+                "resource_set": ["database-appaccess-only"],
                 "user_set": [],
                 "process_set": [],
                 "action": ["read", "write", "all_ops"],
-                "browsing": true,
+                "browsing": false,
                 "effect": {
                     "permission": "deny",
                     "option": {
@@ -182,37 +150,21 @@
         "code": "policy-public-access",
         "name": "Public Data Access Policy",
         "policy_type": "life_data_transformation",
-        "description": "Open access to public files",
+        "description": "Universal access to public files for all users and processes",
         "security_rules": [
             {
-                "id": "rule-public-all-read",
+                "id": "rule-public-universal-access",
                 "order": 1,
                 "resource_set": ["public-data"],
                 "user_set": [],
                 "process_set": [],
-                "action": ["read"],
+                "action": ["read", "write", "all_ops"],
                 "browsing": true,
                 "effect": {
                     "permission": "permit",
                     "option": {
                         "apply_key": false,
                         "audit": false
-                    }
-                }
-            },
-            {
-                "id": "rule-public-admin-write",
-                "order": 2,
-                "resource_set": ["public-data"],
-                "user_set": ["dbadmin-set"],
-                "process_set": [],
-                "action": ["write", "all_ops"],
-                "browsing": true,
-                "effect": {
-                    "permission": "permit",
-                    "option": {
-                        "apply_key": false,
-                        "audit": true
                     }
                 }
             }

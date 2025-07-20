@@ -54,6 +54,122 @@
         ]
     },
     {
+        "id": "resource-set-sensitive-testuser1",
+        "code": "sensitive-testuser1-folder",
+        "name": "Testuser1 Sensitive Subfolder",
+        "resource_set_type": "directory",
+        "os": "linux",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Testuser1 specific subfolder in sensitive guard point",
+        "resource_list": [
+            {
+                "index": 0,
+                "id": "testuser1-folder-id",
+                "directory": "testuser1",
+                "file": "*",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "resource-set-sensitive-testuser2",
+        "code": "sensitive-testuser2-folder",
+        "name": "Testuser2 Sensitive Subfolder",
+        "resource_set_type": "directory",
+        "os": "linux",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Testuser2 specific subfolder in sensitive guard point",
+        "resource_list": [
+            {
+                "index": 0,
+                "id": "testuser2-folder-id",
+                "directory": "testuser2",
+                "file": "*",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
+        "id": "resource-set-database-appaccess",
+        "code": "database-appaccess-only",
+        "name": "Database App Access Files",
+        "resource_set_type": "file",
+        "os": "linux",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "Database files accessible only by MySQL/MariaDB processes",
+        "resource_list": [
+            {
+                "index": 0,
+                "id": "mariadb-data-files",
+                "directory": "",
+                "file": "*.ibd",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 1,
+                "id": "mariadb-frm-files",
+                "directory": "",
+                "file": "*.frm",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 2,
+                "id": "mariadb-log-files",
+                "directory": "",
+                "file": "*.log",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 3,
+                "id": "mariadb-db-opt",
+                "directory": "",
+                "file": "db.opt",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 4,
+                "id": "mariadb-ibdata",
+                "directory": "",
+                "file": "ibdata*",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 5,
+                "id": "mariadb-ib-logfiles",
+                "directory": "",
+                "file": "ib_logfile*",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
         "id": "resource-set-public",
         "code": "public-data",
         "name": "Public Data Files",
