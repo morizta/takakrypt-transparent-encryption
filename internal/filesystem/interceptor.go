@@ -274,6 +274,10 @@ func (i *Interceptor) InterceptWrite(ctx context.Context, op *FileOperation) (*O
 }
 
 func (i *Interceptor) InterceptList(ctx context.Context, op *FileOperation) (*OperationResult, error) {
+	log.Printf("[INTERCEPTOR] ========== INTERCEPT LIST START ==========")
+	log.Printf("[INTERCEPTOR] InterceptList: Operation received - Path=%s, UID=%d, GID=%d, PID=%d, Binary=%s", 
+		op.Path, op.UID, op.GID, op.PID, op.Binary)
+	
 	req := &policy.AccessRequest{
 		Path:      op.Path,
 		Action:    "browse",
@@ -282,9 +286,18 @@ func (i *Interceptor) InterceptList(ctx context.Context, op *FileOperation) (*Op
 		ProcessID: op.PID,
 		Binary:    op.Binary,
 	}
+	
+	log.Printf("[INTERCEPTOR] InterceptList: Created policy request - Path=%s, Action=%s, UID=%d, Binary=%s", 
+		req.Path, req.Action, req.UID, req.Binary)
+	log.Printf("[INTERCEPTOR] InterceptList: Calling policy engine...")
 
 	result, err := i.policyEngine.EvaluateAccess(req)
+	log.Printf("[INTERCEPTOR] InterceptList: Policy engine response - Permission=%s, RuleID=%s, err=%v", 
+		result.Permission, result.RuleID, err)
+	
 	if err != nil {
+		log.Printf("[INTERCEPTOR] InterceptList: Policy evaluation ERROR: %v", err)
+		log.Printf("[INTERCEPTOR] ========== INTERCEPT LIST END (ERROR) ==========")
 		return &OperationResult{
 			Allowed: false,
 			Error:   fmt.Errorf("policy evaluation failed: %w", err),
@@ -301,8 +314,13 @@ func (i *Interceptor) InterceptList(ctx context.Context, op *FileOperation) (*Op
 		Success:    result.Permission == "permit",
 		Timestamp:  getCurrentTimestamp(),
 	}
+	
+	log.Printf("[INTERCEPTOR] InterceptList: Created audit event - Operation=%s, Permission=%s, RuleID=%s", 
+		auditEvent.Operation, auditEvent.Permission, auditEvent.RuleID)
 
 	if result.Permission != "permit" {
+		log.Printf("[INTERCEPTOR] InterceptList: ACCESS DENIED - Permission=%s, RuleID=%s", result.Permission, result.RuleID)
+		log.Printf("[INTERCEPTOR] ========== INTERCEPT LIST END (DENIED) ==========")
 		return &OperationResult{
 			Allowed:    false,
 			AuditEvent: auditEvent,
@@ -310,6 +328,8 @@ func (i *Interceptor) InterceptList(ctx context.Context, op *FileOperation) (*Op
 		}, nil
 	}
 
+	log.Printf("[INTERCEPTOR] InterceptList: ACCESS GRANTED - Permission=%s, RuleID=%s", result.Permission, result.RuleID)
+	log.Printf("[INTERCEPTOR] ========== INTERCEPT LIST END (GRANTED) ==========")
 	return &OperationResult{
 		Allowed:    true,
 		AuditEvent: auditEvent,

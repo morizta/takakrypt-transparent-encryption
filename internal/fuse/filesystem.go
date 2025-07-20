@@ -234,13 +234,17 @@ func (tfs *TransparentFS) Open(ctx context.Context, flags uint32) (fs.FileHandle
 }
 
 func (tfs *TransparentFS) Readdir(ctx context.Context) (fs.DirStream, syscall.Errno) {
+	log.Printf("[FUSE] ========== READDIR OPERATION START ==========")
+	
 	virtualPath := tfs.getVirtualPath()
+	log.Printf("[FUSE] Readdir: Generated virtual path=%s from backing path=%s", virtualPath, tfs.backingPath)
 
 	// Get real user context from FUSE
 	uid, gid, pid := getRealUserContext(ctx)
 	binary := getProcessBinaryFromPid(pid)
 
-	log.Printf("[FUSE] Readdir: path=%s, uid=%d, gid=%d, pid=%d, binary=%s", virtualPath, uid, gid, pid, binary)
+	log.Printf("[FUSE] Readdir: User context - uid=%d, gid=%d, pid=%d, binary=%s", uid, gid, pid, binary)
+	log.Printf("[FUSE] Readdir: Guard point - protected=%s, secure=%s", tfs.guardPoint.ProtectedPath, tfs.guardPoint.SecureStoragePath)
 
 	op := &filesystem.FileOperation{
 		Type:   "browse", // Changed from "list" to "browse" to match policy
@@ -251,21 +255,30 @@ func (tfs *TransparentFS) Readdir(ctx context.Context) (fs.DirStream, syscall.Er
 		Binary: binary,
 	}
 
+	log.Printf("[FUSE] Readdir: Calling interceptor with operation: Type=%s, Path=%s, UID=%d, Binary=%s", op.Type, op.Path, op.UID, op.Binary)
+	
 	result, err := tfs.interceptor.InterceptList(ctx, op)
-	log.Printf("[FUSE] Readdir result: allowed=%v, err=%v", result.Allowed, err)
+	log.Printf("[FUSE] Readdir: Interceptor response - allowed=%v, err=%v", result.Allowed, err)
 	if err != nil || !result.Allowed {
+		log.Printf("[FUSE] Readdir: ACCESS DENIED - returning EACCES")
+		log.Printf("[FUSE] ========== READDIR OPERATION END (DENIED) ==========")
 		return nil, syscall.EACCES
 	}
 
+	log.Printf("[FUSE] Readdir: ACCESS GRANTED - reading directory %s", tfs.backingPath)
 	entries, err := os.ReadDir(tfs.backingPath)
 	if err != nil {
+		log.Printf("[FUSE] Readdir: Failed to read directory %s: %v", tfs.backingPath, err)
+		log.Printf("[FUSE] ========== READDIR OPERATION END (ERROR) ==========")
 		return nil, syscall.EIO
 	}
 
 	var dirEntries []fuse.DirEntry
+	log.Printf("[FUSE] Readdir: Found %d entries in directory", len(entries))
 	for _, entry := range entries {
 		info, err := entry.Info()
 		if err != nil {
+			log.Printf("[FUSE] Readdir: Skipping entry %s due to info error: %v", entry.Name(), err)
 			continue
 		}
 
@@ -276,13 +289,17 @@ func (tfs *TransparentFS) Readdir(ctx context.Context) (fs.DirStream, syscall.Er
 
 		if info.IsDir() {
 			dirEntry.Mode = fuse.S_IFDIR
+			log.Printf("[FUSE] Readdir: Added directory entry: %s", entry.Name())
 		} else {
 			dirEntry.Mode = fuse.S_IFREG
+			log.Printf("[FUSE] Readdir: Added file entry: %s", entry.Name())
 		}
 
 		dirEntries = append(dirEntries, dirEntry)
 	}
 
+	log.Printf("[FUSE] Readdir: Returning %d entries to FUSE", len(dirEntries))
+	log.Printf("[FUSE] ========== READDIR OPERATION END (SUCCESS) ==========")
 	return fs.NewListDirStream(dirEntries), 0
 }
 

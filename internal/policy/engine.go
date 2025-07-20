@@ -66,6 +66,7 @@ func NewEngine(cfg *config.Config) *Engine {
 }
 
 func (e *Engine) EvaluateAccess(req *AccessRequest) (*AccessResult, error) {
+	log.Printf("[POLICY] ========== POLICY EVALUATION START ==========")
 	log.Printf("[POLICY] EvaluateAccess: path=%s, action=%s, uid=%d, gid=%d, pid=%d, binary=%s", req.Path, req.Action, req.UID, req.GID, req.ProcessID, req.Binary)
 
 	guardPoint := e.findGuardPoint(req.Path)
@@ -107,6 +108,7 @@ func (e *Engine) EvaluateAccess(req *AccessRequest) (*AccessResult, error) {
 		log.Printf("[POLICY] Evaluating rule %d: %s (userSet: %v, processSet: %v, resourceSet: %v, action: %v)", rule.Order, rule.ID, rule.UserSet, rule.ProcessSet, rule.ResourceSet, rule.Action)
 		if e.matchesRule(req, &rule) {
 			log.Printf("[POLICY] Rule matched! Permission: %s, ApplyKey: %v, Audit: %v", rule.Effect.Permission, rule.Effect.Option.ApplyKey, rule.Effect.Option.Audit)
+			log.Printf("[POLICY] ========== POLICY EVALUATION END (RULE MATCH: %s) ==========", rule.ID)
 			return &AccessResult{
 				Permission: rule.Effect.Permission,
 				ApplyKey:   rule.Effect.Option.ApplyKey,
@@ -118,6 +120,7 @@ func (e *Engine) EvaluateAccess(req *AccessRequest) (*AccessResult, error) {
 	}
 
 	log.Printf("[POLICY] No rules matched, using default deny")
+	log.Printf("[POLICY] ========== POLICY EVALUATION END (DEFAULT DENY) ==========")
 	return &AccessResult{
 		Permission: "deny",
 		ApplyKey:   false,
