@@ -32,6 +32,9 @@ sudo cp "$SCRIPT_DIR"/deploy/ubuntu-config/*.json /opt/takakrypt/config/
 # Start the agent service
 sudo systemctl start takakrypt
 
+# Wait for a few seconds to ensure the service starts properly
+sleep 5
+
 # Check status
 sudo systemctl status takakrypt
 

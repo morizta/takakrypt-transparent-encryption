@@ -62,6 +62,7 @@ func (mm *MountManager) MountGuardPoint(ctx context.Context, gp *config.GuardPoi
 	}
 
 	root := NewTransparentFS(mm.interceptor, gp)
+	log.Printf("[MOUNT] Created root FUSE FS for guard point: protected=%s, secure=%s", gp.ProtectedPath, gp.SecureStoragePath)
 
 	opts := &fs.Options{
 		MountOptions: fuse.MountOptions{

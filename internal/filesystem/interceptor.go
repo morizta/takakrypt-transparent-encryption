@@ -337,10 +337,14 @@ func (i *Interceptor) InterceptList(ctx context.Context, op *FileOperation) (*Op
 }
 
 func (i *Interceptor) findGuardPointForPath(path string) *config.GuardPoint {
+	log.Printf("[INTERCEPT] findGuardPointForPath: searching for path=%s", path)
+	
 	absPath, err := filepath.Abs(path)
 	if err != nil {
+		log.Printf("[INTERCEPT] findGuardPointForPath: failed to get absolute path: %v", err)
 		return nil
 	}
+	log.Printf("[INTERCEPT] findGuardPointForPath: absolute path=%s", absPath)
 
 	var bestMatch *config.GuardPoint
 	maxDepth := -1
@@ -348,37 +352,58 @@ func (i *Interceptor) findGuardPointForPath(path string) *config.GuardPoint {
 	for j := range i.config.GuardPoints {
 		gp := &i.config.GuardPoints[j]
 		if !gp.Enabled {
+			log.Printf("[INTERCEPT] findGuardPointForPath: skipping disabled guard point %s", gp.ID)
 			continue
 		}
 
 		absGuardPath, err := filepath.Abs(gp.ProtectedPath)
 		if err != nil {
+			log.Printf("[INTERCEPT] findGuardPointForPath: failed to get absolute guard path for %s: %v", gp.ID, err)
 			continue
 		}
 
 		rel, err := filepath.Rel(absGuardPath, absPath)
 		if err != nil {
+			log.Printf("[INTERCEPT] findGuardPointForPath: failed to get relative path for guard point %s: %v", gp.ID, err)
 			continue
 		}
 
+		log.Printf("[INTERCEPT] findGuardPointForPath: guard point %s - guardPath=%s, rel=%s", gp.ID, absGuardPath, rel)
+
 		if !filepath.IsAbs(rel) && rel != ".." && !filepath.HasPrefix(rel, "../") {
 			depth := len(filepath.SplitList(absGuardPath))
+			log.Printf("[INTERCEPT] findGuardPointForPath: guard point %s matches with depth %d", gp.ID, depth)
 			if depth > maxDepth {
 				maxDepth = depth
 				bestMatch = gp
+				log.Printf("[INTERCEPT] findGuardPointForPath: new best match: %s", gp.ID)
 			}
+		} else {
+			log.Printf("[INTERCEPT] findGuardPointForPath: guard point %s does not match (rel=%s)", gp.ID, rel)
 		}
 	}
 
+	if bestMatch != nil {
+		log.Printf("[INTERCEPT] findGuardPointForPath: FINAL MATCH - guard point %s for path %s", bestMatch.ID, path)
+	} else {
+		log.Printf("[INTERCEPT] findGuardPointForPath: NO MATCH found for path %s", path)
+	}
 	return bestMatch
 }
 
 func (i *Interceptor) getEncryptedPath(gp *config.GuardPoint, originalPath string) string {
+	log.Printf("[INTERCEPT] getEncryptedPath: originalPath=%s, guardProtected=%s, guardSecure=%s", 
+		originalPath, gp.ProtectedPath, gp.SecureStoragePath)
+	
 	rel, err := filepath.Rel(gp.ProtectedPath, originalPath)
 	if err != nil {
+		log.Printf("[INTERCEPT] getEncryptedPath: ERROR in filepath.Rel: %v", err)
 		return originalPath
 	}
-	return filepath.Join(gp.SecureStoragePath, rel)
+	
+	encryptedPath := filepath.Join(gp.SecureStoragePath, rel)
+	log.Printf("[INTERCEPT] getEncryptedPath: rel=%s, encryptedPath=%s", rel, encryptedPath)
+	return encryptedPath
 }
 
 func (i *Interceptor) readAndDecrypt(path string, guardPointID string) ([]byte, error) {

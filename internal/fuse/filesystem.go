@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"github.com/hanwen/go-fuse/v2/fs"
@@ -23,6 +24,8 @@ type TransparentFS struct {
 }
 
 func NewTransparentFS(interceptor *filesystem.Interceptor, guardPoint *config.GuardPoint) *TransparentFS {
+	log.Printf("[FUSE] NewTransparentFS: creating root FS with backingPath=%s, guardPoint.SecureStoragePath=%s", 
+		guardPoint.SecureStoragePath, guardPoint.SecureStoragePath)
 	return &TransparentFS{
 		interceptor: interceptor,
 		guardPoint:  guardPoint,
@@ -45,8 +48,12 @@ func (tfs *TransparentFS) Lookup(ctx context.Context, name string, out *fuse.Ent
 	virtualPath := filepath.Join(tfs.getVirtualPath(), name)
 	backingPath := filepath.Join(tfs.backingPath, name)
 
+	log.Printf("[FUSE] Lookup: name=%s, currentVirtualPath=%s, newVirtualPath=%s, currentBackingPath=%s, newBackingPath=%s", 
+		name, tfs.getVirtualPath(), virtualPath, tfs.backingPath, backingPath)
+
 	info, err := os.Stat(backingPath)
 	if err != nil {
+		log.Printf("[FUSE] Lookup: stat failed for %s: %v", backingPath, err)
 		return nil, syscall.ENOENT
 	}
 
@@ -57,6 +64,7 @@ func (tfs *TransparentFS) Lookup(ctx context.Context, name string, out *fuse.Ent
 			guardPoint:  tfs.guardPoint,
 			backingPath: backingPath,
 		}
+		log.Printf("[FUSE] Lookup: created directory child for %s -> %s", virtualPath, backingPath)
 	} else {
 		child = &TransparentFile{
 			interceptor: tfs.interceptor,
@@ -64,6 +72,7 @@ func (tfs *TransparentFS) Lookup(ctx context.Context, name string, out *fuse.Ent
 			virtualPath: virtualPath,
 			backingPath: backingPath,
 		}
+		log.Printf("[FUSE] Lookup: created file child for %s -> %s", virtualPath, backingPath)
 	}
 
 	stable := fs.StableAttr{
@@ -96,14 +105,20 @@ func (tfs *TransparentFS) Lookup(ctx context.Context, name string, out *fuse.Ent
 }
 
 func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32, mode uint32, out *fuse.EntryOut) (*fs.Inode, fs.FileHandle, uint32, syscall.Errno) {
+	log.Printf("[FUSE] Create: ========== FILE CREATE START ==========")
+	log.Printf("[FUSE] Create: name=%s, currentBackingPath=%s", name, tfs.backingPath)
+	log.Printf("[FUSE] Create: guardPoint - protected=%s, secure=%s", tfs.guardPoint.ProtectedPath, tfs.guardPoint.SecureStoragePath)
+	
 	virtualPath := filepath.Join(tfs.getVirtualPath(), name)
 	backingPath := filepath.Join(tfs.backingPath, name)
+
+	log.Printf("[FUSE] Create: COMPUTED PATHS - virtual=%s, backing=%s", virtualPath, backingPath)
 
 	// Get real user context from FUSE
 	uid, gid, pid := getRealUserContext(ctx)
 	binary := getProcessBinaryFromPid(pid)
 
-	log.Printf("[FUSE] Create: path=%s, flags=%d, mode=%o, uid=%d, gid=%d, pid=%d, binary=%s", virtualPath, flags, mode, uid, gid, pid, binary)
+	log.Printf("[FUSE] Create: user context - uid=%d, gid=%d, pid=%d, binary=%s, flags=%d, mode=%o", uid, gid, pid, binary, flags, mode)
 
 	op := &filesystem.FileOperation{
 		Type:   "write", // Changed from "create" to "write" to match policy actions
@@ -185,7 +200,8 @@ func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32,
 		backingPath: backingPath,
 	}
 
-	log.Printf("[FUSE] Create successful: %s", virtualPath)
+	log.Printf("[FUSE] Create successful: virtual=%s, backing=%s", virtualPath, backingPath)
+	log.Printf("[FUSE] Create: ========== FILE CREATE END ==========")
 	return tfs.NewInode(ctx, child, stable), fileHandle, 0, 0
 }
 
@@ -376,14 +392,43 @@ func (tfs *TransparentFS) Rename(ctx context.Context, name string, newParent fs.
 }
 
 func (tfs *TransparentFS) getVirtualPath() string {
-	rel, err := filepath.Rel(tfs.guardPoint.SecureStoragePath, tfs.backingPath)
-	if err != nil {
-		log.Printf("[FUSE] getVirtualPath error: %v, guardPoint=%s, backingPath=%s", err, tfs.guardPoint.SecureStoragePath, tfs.backingPath)
-		return tfs.guardPoint.ProtectedPath
+	// Clean paths to handle any path inconsistencies
+	guardSecurePath := filepath.Clean(tfs.guardPoint.SecureStoragePath)
+	backingPath := filepath.Clean(tfs.backingPath)
+	guardProtectedPath := filepath.Clean(tfs.guardPoint.ProtectedPath)
+	
+	log.Printf("[FUSE] getVirtualPath: input - guardSecure=%s, backing=%s, guardProtected=%s", 
+		guardSecurePath, backingPath, guardProtectedPath)
+	
+	// Handle root guard point directory case
+	if backingPath == guardSecurePath {
+		log.Printf("[FUSE] getVirtualPath: root directory case, returning %s", guardProtectedPath)
+		return guardProtectedPath
 	}
-	virtualPath := filepath.Join(tfs.guardPoint.ProtectedPath, rel)
-	log.Printf("[FUSE] getVirtualPath: guardPoint=%s, backingPath=%s, rel=%s, virtualPath=%s", 
-		tfs.guardPoint.SecureStoragePath, tfs.backingPath, rel, virtualPath)
+	
+	// Check if backingPath is actually under the guard point
+	if !strings.HasPrefix(backingPath, guardSecurePath+string(filepath.Separator)) && backingPath != guardSecurePath {
+		log.Printf("[FUSE] getVirtualPath: WARNING - backingPath %s is not under guardSecurePath %s", backingPath, guardSecurePath)
+		return guardProtectedPath
+	}
+	
+	rel, err := filepath.Rel(guardSecurePath, backingPath)
+	if err != nil {
+		log.Printf("[FUSE] getVirtualPath error: %v, guardSecure=%s, backing=%s", err, guardSecurePath, backingPath)
+		return guardProtectedPath
+	}
+	
+	// Handle "." case (same directory)
+	if rel == "." {
+		log.Printf("[FUSE] getVirtualPath: same directory case, returning %s", guardProtectedPath)
+		return guardProtectedPath
+	}
+	
+	virtualPath := filepath.Join(guardProtectedPath, rel)
+	virtualPath = filepath.Clean(virtualPath)
+	
+	log.Printf("[FUSE] getVirtualPath: FINAL - guardSecure=%s, backing=%s, rel=%s, virtual=%s", 
+		guardSecurePath, backingPath, rel, virtualPath)
 	return virtualPath
 }
 
