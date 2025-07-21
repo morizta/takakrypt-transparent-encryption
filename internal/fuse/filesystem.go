@@ -392,7 +392,7 @@ func (tfs *TransparentFS) Rename(ctx context.Context, name string, newParent fs.
 	return 0
 }
 
-func (tfs *TransparentFS) Fsync(ctx context.Context, flags uint32) syscall.Errno {
+func (tfs *TransparentFS) Fsync(ctx context.Context, fh fs.FileHandle, flags uint32) syscall.Errno {
 	// For directories, we open the directory and call fsync on the file descriptor
 	// This ensures directory metadata (like new file entries) are synced to disk
 	dir, err := os.Open(tfs.backingPath)
