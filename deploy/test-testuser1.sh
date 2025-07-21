@@ -44,7 +44,7 @@ test_with_output() {
 # Ensure test directories exist
 sudo -u ntoi mkdir -p /data/sensitive/testuser1 2>/dev/null || true
 sudo -u ntoi mkdir -p /data/sensitive/testuser2 2>/dev/null || true
-sudo -u ntoi mkdir -p /data/sensitive/shared 2>/dev/null || true
+# Removed shared folder creation - not part of security model
 
 # Test 1: SENSITIVE GUARD POINT - OWN FOLDER (SHOULD WORK)
 echo "=== 1. TESTING OWN FOLDER (/data/sensitive/testuser1/) ==="
@@ -64,7 +64,7 @@ test_with_output "List root sensitive directory" "sudo -u testuser1 ls -la /data
 test_with_output "Access testuser2 folder" "sudo -u testuser1 ls -la /data/sensitive/testuser2/" "DENIED"
 test_with_output "Write to root sensitive" "echo 'unauthorized' | sudo -u testuser1 tee /data/sensitive/testuser1-hack.txt > /dev/null" "DENIED"
 test_with_output "Write to testuser2 folder" "echo 'hack attempt' | sudo -u testuser1 tee /data/sensitive/testuser2/hack.txt > /dev/null" "DENIED"
-test_with_output "Access shared folder" "sudo -u testuser1 ls -la /data/sensitive/shared/" "DENIED"
+# Removed shared folder test - folder shouldn't exist
 
 # Test 3: DATABASE GUARD POINT (SHOULD FAIL)
 echo -e "\n=== 3. TESTING DATABASE GUARD POINT (SHOULD BE DENIED) ==="

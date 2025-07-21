@@ -84,7 +84,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     # Sensitive folders
     mkdir -p /secure_storage/sensitive/testuser1
     mkdir -p /secure_storage/sensitive/testuser2
-    mkdir -p /secure_storage/sensitive/shared
+    # Removed shared folder - not part of security model
     
     # Database folders
     mkdir -p /secure_storage/database/myapp

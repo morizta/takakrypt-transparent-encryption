@@ -129,8 +129,9 @@ setup_test_environment() {
     echo -e "${YELLOW}Setting up test environment...${NC}"
     
     # Create test directories if they don't exist
-    mkdir -p /data/sensitive/{testuser1,testuser2,shared} 2>/dev/null || true
+    mkdir -p /data/sensitive/{testuser1,testuser2} 2>/dev/null || true
     mkdir -p /data/database/testdb 2>/dev/null || true
+    # Note: public folder can have shared directory for universal access
     mkdir -p /data/public/shared 2>/dev/null || true
     
     # Set appropriate permissions

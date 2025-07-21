@@ -71,7 +71,7 @@ echo "Expected: Full access (read, write, ls, mkdir, rm)"
 sudo -u ntoi mkdir -p /data/sensitive/ntoi-test 2>/dev/null || true
 sudo -u ntoi mkdir -p /data/sensitive/testuser1 2>/dev/null || true
 sudo -u ntoi mkdir -p /data/sensitive/testuser2 2>/dev/null || true
-sudo -u ntoi mkdir -p /data/sensitive/shared 2>/dev/null || true
+# Removed shared folder creation - not part of security model
 
 # Test operations
 test_with_output "List root directory" "sudo -u ntoi ls -la /data/sensitive/" "SUCCESS"
