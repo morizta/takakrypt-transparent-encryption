@@ -19,6 +19,16 @@
             },
             {
                 "index": 1,
+                "id": "mariadb-server-id",
+                "directory": "/usr/sbin/",
+                "file": "mariadbd",
+                "signature": [],
+                "rwp_exempted_resources": [],
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            },
+            {
+                "index": 2,
                 "id": "mysql-client-id",
                 "directory": "/usr/bin/",
                 "file": "mysql",
@@ -28,7 +38,7 @@
                 "modified_at": 1752440673097447000
             },
             {
-                "index": 2,
+                "index": 3,
                 "id": "sqlite3-id",
                 "directory": "/usr/bin/",
                 "file": "sqlite3",

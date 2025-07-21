@@ -80,8 +80,24 @@
         "description": "Database access restricted to MySQL/MariaDB processes only",
         "security_rules": [
             {
-                "id": "rule-db-mysql-process",
+                "id": "rule-db-mysql-user-process",
                 "order": 1,
+                "resource_set": ["database-files"],
+                "user_set": ["mysql-set"],
+                "process_set": ["mysql-processes"],
+                "action": ["read", "write", "all_ops"],
+                "browsing": true,
+                "effect": {
+                    "permission": "permit",
+                    "option": {
+                        "apply_key": true,
+                        "audit": true
+                    }
+                }
+            },
+            {
+                "id": "rule-db-mysql-process",
+                "order": 2,
                 "resource_set": ["database-appaccess-only"],
                 "user_set": [],
                 "process_set": ["mysql-processes"],
@@ -97,7 +113,7 @@
             },
             {
                 "id": "rule-db-ntoi-admin",
-                "order": 2,
+                "order": 3,
                 "resource_set": ["database-appaccess-only"],
                 "user_set": ["ntoi-set"],
                 "process_set": [],
@@ -113,7 +129,7 @@
             },
             {
                 "id": "rule-db-deny-all",
-                "order": 3,
+                "order": 4,
                 "resource_set": ["database-appaccess-only"],
                 "user_set": [],
                 "process_set": [],

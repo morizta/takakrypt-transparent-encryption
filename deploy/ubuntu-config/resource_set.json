@@ -170,6 +170,28 @@
         ]
     },
     {
+        "id": "resource-set-database-files",
+        "code": "database-files",
+        "name": "All Database Files",
+        "resource_set_type": "directory",
+        "os": "linux",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "All files in database directory for MariaDB/MySQL access",
+        "resource_list": [
+            {
+                "index": 0,
+                "id": "all-database-files-id",
+                "directory": "",
+                "file": "*",
+                "subfolder": true,
+                "hsdfs": false,
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
         "id": "resource-set-public",
         "code": "public-data",
         "name": "Public Data Files",

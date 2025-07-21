@@ -78,6 +78,32 @@
         ]
     },
     {
+        "id": "user-set-mysql",
+        "code": "mysql-set",
+        "name": "MySQL/MariaDB User Set",
+        "created_at": 1752439877215837000,
+        "modified_at": 1752440673097447000,
+        "description": "MySQL/MariaDB database server user",
+        "users": [
+            {
+                "index": 0,
+                "id": "mysql-user-id",
+                "uid": 111,
+                "uname": "mysql",
+                "fname": "MySQL Server",
+                "gname": "mysql", 
+                "gid": 115,
+                "os": "linux",
+                "type": "system",
+                "email": "mysql@localhost",
+                "os_domain": "localhost",
+                "os_user": "mysql",
+                "created_at": 1752439877215837000,
+                "modified_at": 1752440673097447000
+            }
+        ]
+    },
+    {
         "id": "user-set-ntoi",
         "code": "ntoi-set",
         "name": "NTOI Admin Set",
