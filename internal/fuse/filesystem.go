@@ -150,6 +150,8 @@ func (tfs *TransparentFS) Create(ctx context.Context, name string, flags uint32,
 		fileFlags |= os.O_CREATE
 	}
 	
+	log.Printf("[FUSE] Create: using flags=%d (0x%x), original=%d (0x%x)", fileFlags, fileFlags, flags, flags)
+	
 	file, err := os.OpenFile(backingPath, fileFlags, os.FileMode(mode))
 	if err != nil {
 		log.Printf("[FUSE] Create file failed: %v", err)
