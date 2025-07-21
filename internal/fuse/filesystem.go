@@ -43,6 +43,7 @@ var _ = (fs.NodeReaddirer)((*TransparentFS)(nil))
 var _ = (fs.NodeGetattrer)((*TransparentFS)(nil))
 var _ = (fs.NodeSetattrer)((*TransparentFS)(nil))
 var _ = (fs.NodeRenamer)((*TransparentFS)(nil))
+var _ = (fs.NodeFsyncer)((*TransparentFS)(nil))
 
 func (tfs *TransparentFS) Lookup(ctx context.Context, name string, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
 	virtualPath := filepath.Join(tfs.getVirtualPath(), name)
@@ -388,6 +389,25 @@ func (tfs *TransparentFS) Rename(ctx context.Context, name string, newParent fs.
 	}
 
 	log.Printf("[FUSE] Rename successful")
+	return 0
+}
+
+func (tfs *TransparentFS) Fsync(ctx context.Context, flags uint32) syscall.Errno {
+	// For directories, we open the directory and call fsync on the file descriptor
+	// This ensures directory metadata (like new file entries) are synced to disk
+	dir, err := os.Open(tfs.backingPath)
+	if err != nil {
+		log.Printf("[FUSE] Directory Fsync failed to open: %v", err)
+		return syscall.EIO
+	}
+	defer dir.Close()
+
+	if err := dir.Sync(); err != nil {
+		log.Printf("[FUSE] Directory Fsync failed: %v", err)
+		return syscall.EIO
+	}
+
+	log.Printf("[FUSE] Directory Fsync successful: %s", tfs.backingPath)
 	return 0
 }
 
