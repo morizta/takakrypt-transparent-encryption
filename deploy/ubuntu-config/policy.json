@@ -55,40 +55,8 @@
                 }
             },
             {
-                "id": "rule-sensitive-testuser1-deny-other",
-                "order": 4,
-                "resource_set": ["sensitive-data"],
-                "user_set": ["testuser1-set"],
-                "process_set": [],
-                "action": ["read", "write", "all_ops"],
-                "browsing": true,
-                "effect": {
-                    "permission": "deny",
-                    "option": {
-                        "apply_key": false,
-                        "audit": true
-                    }
-                }
-            },
-            {
-                "id": "rule-sensitive-testuser2-deny-other",
-                "order": 5,
-                "resource_set": ["sensitive-data"],
-                "user_set": ["testuser2-set"],
-                "process_set": [],
-                "action": ["read", "write", "all_ops"],
-                "browsing": true,
-                "effect": {
-                    "permission": "deny",
-                    "option": {
-                        "apply_key": false,
-                        "audit": true
-                    }
-                }
-            },
-            {
                 "id": "rule-sensitive-allow-encrypted",
-                "order": 6,
+                "order": 4,
                 "resource_set": ["sensitive-data"],
                 "user_set": [],
                 "process_set": [],
