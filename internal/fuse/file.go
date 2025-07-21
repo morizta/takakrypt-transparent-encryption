@@ -89,9 +89,19 @@ func (tf *TransparentFile) Getattr(ctx context.Context, fh fs.FileHandle, out *f
 		return syscall.ENOENT
 	}
 
-	log.Printf("[FUSE] File Getattr: os.Stat success, file size=%d", info.Size())
+	log.Printf("[FUSE] File Getattr: encrypted file size=%d", info.Size())
 
 	attr := fileInfoToAttr(info)
+	
+	// Fix file size: encrypted files have 28 bytes overhead (12-byte nonce + 16-byte auth tag)
+	// Report the actual decrypted content size to applications
+	if info.Size() >= 28 {
+		decryptedSize := info.Size() - 28
+		attr.Size = uint64(decryptedSize)
+		log.Printf("[FUSE] File Getattr: adjusted size from %d to %d (removed 28-byte encryption overhead)", info.Size(), decryptedSize)
+	} else {
+		log.Printf("[FUSE] File Getattr: file too small for encryption overhead, reporting actual size %d", info.Size())
+	}
 	// Ensure the FUSE view shows the correct ownership from the backing store
 	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
 		log.Printf("[FUSE] File Getattr: backing store ownership - uid=%d, gid=%d", stat.Uid, stat.Gid)
