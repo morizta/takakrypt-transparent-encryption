@@ -34,12 +34,14 @@ func NewMountManager(interceptor *filesystem.Interceptor) *MountManager {
 }
 
 func (mm *MountManager) MountGuardPoints(ctx context.Context, guardPoints []config.GuardPoint) error {
-	for _, gp := range guardPoints {
+	for i := range guardPoints {
+		gp := &guardPoints[i] // Fix: Use index to get unique pointer for each guard point
 		if !gp.Enabled {
 			continue
 		}
 
-		if err := mm.MountGuardPoint(ctx, &gp); err != nil {
+		log.Printf("[MOUNT] Processing guard point: %s -> %s", gp.ProtectedPath, gp.SecureStoragePath)
+		if err := mm.MountGuardPoint(ctx, gp); err != nil {
 			log.Printf("Failed to mount guard point %s: %v", gp.Code, err)
 			continue
 		}
