@@ -87,7 +87,7 @@
                 }
             },
             {
-                "id": "rule-sensitive-deny-all",
+                "id": "rule-sensitive-allow-encrypted",
                 "order": 6,
                 "resource_set": ["sensitive-data"],
                 "user_set": [],
@@ -95,7 +95,7 @@
                 "action": ["read", "write", "all_ops"],
                 "browsing": false,
                 "effect": {
-                    "permission": "deny",
+                    "permission": "permit",
                     "option": {
                         "apply_key": false,
                         "audit": true
