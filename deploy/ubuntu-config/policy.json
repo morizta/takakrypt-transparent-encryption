@@ -80,11 +80,11 @@
         "description": "Database access restricted to MySQL/MariaDB processes only",
         "security_rules": [
             {
-                "id": "rule-db-mysql-user-process",
+                "id": "rule-db-mysql-user-any-process",
                 "order": 1,
                 "resource_set": ["database-files"],
                 "user_set": ["mysql-set"],
-                "process_set": ["mysql-processes"],
+                "process_set": [],
                 "action": ["read", "write", "all_ops"],
                 "browsing": true,
                 "effect": {
